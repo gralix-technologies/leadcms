@@ -27,7 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*','https://gralixleadcmd-d0a5d3hucjdygxah.canadacentral-01.azurewebsites.net']
 
-
+CSRF_TRUSTED_ORIGINS = [
+    'https://gralixleadcmd-d0a5d3hucjdygxah.canadacentral-01.azurewebsites.net',
+    # ... other trusted origins
+]
 # Application definition
 
 INSTALLED_APPS = [
