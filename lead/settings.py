@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-f0qopkb0u(gda(9=04o9z(^^sp3x^+os+y#w3)nv%c5l+uui9t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*','https://gralixleadcmd-d0a5d3hucjdygxah.canadacentral-01.azurewebsites.net']
 
 
 # Application definition
