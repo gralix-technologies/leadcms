@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gralix Holdings - Lead Management System{% endblock %}</title>
+    
+    {% load static %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="{% static 'leads/css/style.css' %}" rel="stylesheet">
+</head>
+<body class="bg-light">
+    {% block content %}
+    {% endblock %}
+    
+    <!-- User Profile Modal -->
+    <div class="modal fade" id="userProfileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person-circle me-2"></i>User Profile
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="personnel-avatar" style="width: 80px; height: 80px; font-size: 24px;" id="profileAvatar">
+                            {{ user.get_avatar }}
+                        </div>
+                        <h4 class="mt-3">{{ user.get_full_name }}</h4>
+                        <p class="text-muted">{{ user.get_division_display }}</p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Email</label>
+                                <div>{{ user.email }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Role</label>
+                                <div>{{ user.get_role_display }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Phone</label>
+                                <div>{{ user.phone|default:"Not provided" }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Current Workload</label>
+                                <div>
+                                    <span class="badge bg-info">{{ user.workload }} leads</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Permissions</label>
+                        <div>
+                            {% if user_permissions.can_view_all_leads %}
+                                <span class="badge bg-success me-1">View All Leads</span>
+                            {% endif %}
+                            {% if user_permissions.can_manage_leads %}
+                                <span class="badge bg-warning me-1">Manage Leads</span>
+                            {% endif %}
+                            <span class="badge bg-primary">{{ user.get_division_display }} Access</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'logout' %}" class="btn btn-outline-danger">
+                        <i class="bi bi-box-arrow-right me-1"></i>Logout
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global user data for JavaScript
+        window.currentUser = {
+            id: {{ user.id }},
+            name: "{{ user.get_full_name }}",
+            email: "{{ user.email }}",
+            division: "{{ user.division }}",
+            role: "{{ user.role }}",
+            avatar: "{{ user.get_avatar }}",
+            permissions: {
+                can_manage_leads: {{ user_permissions.can_manage_leads|yesno:"true,false" }},
+                can_view_all_leads: {{ user_permissions.can_view_all_leads|yesno:"true,false" }}
+            }
+        };
+    </script>
+    <script src="{% static 'leads/js/dashboard.js' %}"></script>
+</body>
+</html>

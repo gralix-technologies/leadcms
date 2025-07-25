@@ -1,0 +1,239 @@
+.header-gradient {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+}
+
+.quick-view-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.quick-view-card:hover {
+    transform: scale(1.02);
+    border-color: #0d6efd;
+}
+
+.quick-view-card.active {
+    background: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.priority-high { 
+    color: #dc3545; 
+    font-weight: bold; 
+}
+
+.priority-medium { 
+    color: #ffc107; 
+    font-weight: bold; 
+}
+
+.priority-low { 
+    color: #198754; 
+    font-weight: bold; 
+}
+
+.division-tech { 
+    background-color: #e3f2fd; 
+    color: #1976d2; 
+}
+
+.division-actuarial { 
+    background-color: #e8f5e8; 
+    color: #2e7d32; 
+}
+
+.division-capital { 
+    background-color: #f3e5f5; 
+    color: #7b1fa2; 
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.analytics-card {
+    border-left: 4px solid;
+}
+
+.analytics-card.success { 
+    border-left-color: #28a745; 
+}
+
+.analytics-card.primary { 
+    border-left-color: #007bff; 
+}
+
+.analytics-card.warning { 
+    border-left-color: #ffc107; 
+}
+
+.analytics-card.info { 
+    border-left-color: #17a2b8; 
+}
+
+/* Progress tracking styles */
+.progress-timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.progress-timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.progress-step {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.progress-step::before {
+    content: '';
+    position: absolute;
+    left: -25px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #dee2e6;
+    border: 2px solid #fff;
+}
+
+.progress-step.completed::before {
+    background: #28a745;
+}
+
+.progress-step.current::before {
+    background: #007bff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.3);
+}
+
+/* Personnel avatar styles */
+.personnel-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+/* Communication timeline */
+.communication-item {
+    border-left: 3px solid #007bff;
+    padding-left: 15px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.communication-item::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 5px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #007bff;
+}
+
+/* Detail view enhancements */
+.lead-detail-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Stage progress bar */
+.stage-progress {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.stage-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745, #20c997);
+    transition: width 0.3s ease;
+}
+
+.lead-company-link {
+    text-decoration: none;
+}
+
+.lead-company-link:hover {
+    text-decoration: underline;
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Alert styles */
+.alert-success {
+    border-color: #b8daff;
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.alert-error {
+    border-color: #f5c6cb;
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Custom scrollbar for modal */
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .quick-view-card {
+        margin-bottom: 1rem;
+    }
+    
+    .personnel-avatar {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}

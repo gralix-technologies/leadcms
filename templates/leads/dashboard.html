@@ -1,0 +1,1807 @@
+{% extends 'leads/base.html' %}
+{% load static %}
+
+{% block content %}
+    <!-- Header -->
+    <div class="header-gradient text-white py-4">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-building fs-1 me-3"></i>
+                        <div>
+                            <h1 class="mb-0 fs-2 fw-bold">Gralix Holdings</h1>
+                            <p class="mb-0 text-light">Lead Management System</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <span class="badge bg-primary px-3 py-2">Gralix Tech</span>
+                        <span class="badge bg-success px-3 py-2">Gralix Actuarial</span>
+                        <span class="badge bg-warning px-3 py-2">Gralix Capital</span>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <!-- User Info -->
+                    <div class="d-flex align-items-center justify-content-end mb-2">
+                        <div class="me-3 text-end">
+                            <div class="fw-bold">{{ user.get_full_name }}</div>
+                            <small class="text-light">{{ user.get_division_display }}</small>
+                        </div>
+                        <div class="personnel-avatar me-3" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#userProfileModal">
+                            {{ user.get_avatar }}
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="bi bi-gear"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#userProfileModal">
+                                        <i class="bi bi-person-circle me-2"></i>Profile
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="btn-group">
+                        {% if user_permissions.can_manage_leads %}
+                        <button class="btn btn-outline-light" id="bulkAssignBtn" type="button">
+                            <i class="bi bi-people me-2"></i>Bulk Assign
+                        </button>
+                        {% endif %}
+                        <button class="btn btn-light" id="addLeadBtn" type="button">
+                            <i class="bi bi-plus-circle me-2"></i>Add New Lead
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rest of the dashboard content remains the same -->
+    <div class="container-fluid py-4">
+        <!-- Loading indicator -->
+        <div id="loadingIndicator" class="text-center py-4" style="display: none;">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Quick View Cards -->
+        <div class="row mb-4" id="quickViewCards">
+            <div class="col-12 text-center py-4">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading dashboard...</p>
+            </div>
+        </div>
+
+        <!-- Revenue Analytics -->
+        <div class="row mb-4">
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Revenue Pipeline</h5>
+                    </div>
+                    <div class="card-body" id="revenueOverview">
+                        <div class="text-center">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Division Performance</h5>
+                    </div>
+                    <div class="card-body" id="divisionPerformance">
+                        <div class="text-center">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-people me-2"></i>Team Performance</h5>
+                    </div>
+                    <div class="card-body" id="teamPerformance">
+                        <div class="text-center">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Statistics Card (New) -->
+        {% if user_permissions.can_view_all_leads %}
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Your Performance</h5>
+            </div>
+            <div class="card-body" id="userStats">
+                <div class="text-center">
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Continue with the rest of the dashboard components... -->
+        <!-- (Search filters, table, modals remain the same) -->
+
+        <!-- Deal Stage Pipeline -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-bullseye me-2"></i>Deal Stage Pipeline</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center" id="dealStagePipeline">
+                    <div class="col-12 text-center">
+                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Search & Filter Leads</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-lg-3">
+                        <label class="form-label">Search</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search company or contact...">
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="all">All Status</option>
+                            <option value="new">New</option>
+                            <option value="contacted">Contacted</option>
+                            <option value="qualified">Qualified</option>
+                            <option value="proposal">Proposal</option>
+                            <option value="negotiation">Negotiation</option>
+                            <option value="hot">Hot</option>
+                            <option value="won">Won</option>
+                            <option value="lost">Lost</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <label class="form-label">Division</label>
+                        <select class="form-select" id="divisionFilter">
+                            <option value="all">All Divisions</option>
+                            <option value="tech">Gralix Tech</option>
+                            <option value="actuarial">Gralix Actuarial</option>
+                            <option value="capital">Gralix Capital</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <label class="form-label">Assigned To</label>
+                        <select class="form-select" id="personnelFilter">
+                            <option value="all">All Personnel</option>
+                            <option value="unassigned">Unassigned</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-1">
+                        <label class="form-label">Priority</label>
+                        <select class="form-select" id="priorityFilter">
+                            <option value="all">All</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary w-100 d-block" id="applyFiltersBtn">
+                            <i class="bi bi-funnel me-1"></i>Apply Filters
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Results Summary -->
+                <div class="mt-3">
+                    <div class="alert alert-info mb-0 d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-info-circle me-2"></i>
+                            Showing <strong id="resultsCount">0</strong> leads
+                            {% if not user_permissions.can_view_all_leads %}
+                                <small class="text-muted">({{ user.get_division_display }} access)</small>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-info me-2" id="clearFiltersBtn">Clear All Filters</button>
+                            {% if user_permissions.can_manage_leads %}
+                            <div class="btn-group btn-group-sm">
+                                <input type="checkbox" class="btn-check" id="selectAll">
+                                <label class="btn btn-outline-secondary" for="selectAll">Select All</label>
+                                <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                    Bulk Actions
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" id="bulkReassignBtn"><i class="bi bi-person-gear me-2"></i>Reassign Selected</a></li>
+                                    <li><a class="dropdown-item" href="#" id="bulkUpdateStatusBtn"><i class="bi bi-flag me-2"></i>Update Status</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#" id="bulkDeleteBtn"><i class="bi bi-trash me-2"></i>Delete Selected</a></li>
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leads Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-table me-2"></i>Company Leads</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                {% if user_permissions.can_manage_leads %}
+                                <th width="40"><input type="checkbox" id="selectAllHeader"></th>
+                                {% endif %}
+                                <th><i class="bi bi-building me-1"></i>Company</th>
+                                <th><i class="bi bi-person me-1"></i>Contact</th>
+                                <th><i class="bi bi-person-badge me-1"></i>Assigned To</th>
+                                <th><i class="bi bi-diagram-3 me-1"></i>Division</th>
+                                <th><i class="bi bi-flag me-1"></i>Status & Progress</th>
+                                <th><i class="bi bi-exclamation-triangle me-1"></i>Priority</th>
+                                <th><i class="bi bi-currency-dollar me-1"></i>Deal Value</th>
+                                <th><i class="bi bi-calendar me-1"></i>Next Follow-up</th>
+                                <th><i class="bi bi-gear me-1"></i>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leadsTableBody">
+                            <tr>
+                                <td colspan="10" class="text-center py-4">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2">Loading leads...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- No Results Message -->
+                <div id="noResultsMessage" class="text-center py-5" style="display: none;">
+                    <i class="bi bi-search fs-1 text-muted mb-3"></i>
+                    <h4 class="text-muted">No leads found</h4>
+                    <p class="text-muted">Try adjusting your search criteria or add a new lead</p>
+                    <button class="btn btn-primary" id="addLeadFromNoResults">
+                        <i class="bi bi-plus-circle me-2"></i>Add New Lead
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All modals remain the same but with form field restrictions based on permissions -->
+    <!-- Add/Edit Lead Modal -->
+    <div class="modal fade" id="leadModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalTitle">Add New Lead</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="leadForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Company Name *</label>
+                                    <input type="text" class="form-control" id="companyName" placeholder="Enter company name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Contact Name</label>
+                                    <input type="text" class="form-control" id="contactName" placeholder="Contact person name">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Position</label>
+                                    <input type="text" class="form-control" id="contactPosition" placeholder="Job title">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email/Phone</label>
+                                    <input type="text" class="form-control" id="email" placeholder="Email or phone number">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Division</label>
+                                    <select class="form-control" id="division">
+                                        {% if user_permissions.can_view_all_leads %}
+                                            <option value="tech">Gralix Tech</option>
+                                            <option value="actuarial">Gralix Actuarial</option>
+                                            <option value="capital">Gralix Capital</option>
+                                        {% else %}
+                                            <option value="{{ user.division }}">{{ user.get_division_display }}</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Assign To *</label>
+                                    <select class="form-control" id="assignedTo" required>
+                                        <option value="">Select Personnel</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Priority Level</label>
+                                    <select class="form-control" id="priority">
+                                        <option value="high">High Priority</option>
+                                        <option value="medium" selected>Medium Priority</option>
+                                        <option value="low">Low Priority</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Deal Value (USD)</label>
+                                    <input type="number" class="form-control" id="dealValue" placeholder="Potential deal value" min="0">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Next Follow-up Date</label>
+                                    <input type="date" class="form-control" id="followupDate">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Comments & Notes</label>
+                            <textarea class="form-control" id="comments" rows="3" placeholder="Add any relevant notes about this lead..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveLeadBtn">
+                        <i class="bi bi-check-circle me-1"></i>Save Lead
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Assignment Modal (Only for Managers/Admins) -->
+    {% if user_permissions.can_manage_leads %}
+    <div class="modal fade" id="bulkAssignModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Bulk Assignment</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Assignment Strategy</label>
+                        <select class="form-control" id="assignmentStrategy">
+                            <option value="manual">Manual Assignment</option>
+                            <option value="round-robin">Round Robin</option>
+                            <option value="workload">Based on Current Workload</option>
+                            <option value="division">Based on Division Expertise</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="manualAssignmentDiv">
+                        <label class="form-label">Assign All To</label>
+                        <select class="form-control" id="bulkAssignPerson">
+                            <option value="">Select Personnel</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Apply to</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="bulkScope" id="unassignedOnly" value="unassigned" checked>
+                            <label class="form-check-label" for="unassignedOnly">
+                                Unassigned leads only
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="bulkScope" id="allLeads" value="all">
+                            <label class="form-check-label" for="allLeads">
+                                All accessible leads (reassign existing)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-info" id="processBulkAssignmentBtn">
+                        <i class="bi bi-people me-1"></i>Apply Assignment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Communication Log Modal -->
+    <div class="modal fade" id="communicationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Log Communication</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Communication Type</label>
+                                <select class="form-control" id="communicationType">
+                                    <option value="call">Phone Call</option>
+                                    <option value="email">Email</option>
+                                    <option value="meeting">Meeting</option>
+                                    <option value="demo">Demo/Presentation</option>
+                                    <option value="proposal">Proposal Sent</option>
+                                    <option value="followup">Follow-up</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Update Status</label>
+                                <select class="form-control" id="newStatus">
+                                    <option value="">Keep Current Status</option>
+                                    <option value="contacted">Contacted</option>
+                                    <option value="qualified">Qualified</option>
+                                    <option value="proposal">Proposal Sent</option>
+                                    <option value="negotiation">Negotiation</option>
+                                    <option value="hot">Hot</option>
+                                    <option value="won">Won</option>
+                                    <option value="lost">Lost</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" id="communicationNote" rows="4" placeholder="What was discussed? Next steps?"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Next Follow-up Date</label>
+                        <input type="date" class="form-control" id="nextFollowupDate">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="logCommunicationBtn">
+                        <i class="bi bi-check-circle me-1"></i>Log Communication
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reassign Modal (Only for Managers/Admins) -->
+    {% if user_permissions.can_manage_leads %}
+    <div class="modal fade" id="reassignModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">Reassign Lead</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Reassign To</label>
+                        <select class="form-control" id="reassignTo">
+                            <option value="">Select Personnel</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Reassignment</label>
+                        <textarea class="form-control" id="reassignReason" rows="3" placeholder="Why is this lead being reassigned?"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="processReassignmentBtn">
+                        <i class="bi bi-person-gear me-1"></i>Reassign Lead
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- JavaScript embedded in template -->
+        <script>
+        // Global variables
+let leads = [];
+let personnel = [];
+let filteredLeads = [];
+let editingLeadId = null;
+let currentView = 'all';
+let selectedLeads = [];
+let analytics = {};
+
+// CSRF token for Django
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing...');
+    setupEventListeners();
+    loadInitialData();
+});
+
+function setupEventListeners() {
+    console.log('Setting up event listeners...');
+    
+    // Main action buttons
+    const addLeadBtn = document.getElementById('addLeadBtn');
+    const bulkAssignBtn = document.getElementById('bulkAssignBtn');
+    
+    if (addLeadBtn) addLeadBtn.addEventListener('click', showAddForm);
+    if (bulkAssignBtn) bulkAssignBtn.addEventListener('click', showBulkAssignModal);
+    
+    // Modal save buttons
+    const saveLeadBtn = document.getElementById('saveLeadBtn');
+    const processBulkAssignmentBtn = document.getElementById('processBulkAssignmentBtn');
+    
+    if (saveLeadBtn) saveLeadBtn.addEventListener('click', saveLead);
+    if (processBulkAssignmentBtn) processBulkAssignmentBtn.addEventListener('click', processBulkAssignment);
+    
+    // Filter buttons
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    
+    if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', applyFilters);
+    if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
+    
+    // Bulk action buttons
+    const bulkReassignBtn = document.getElementById('bulkReassignBtn');
+    const bulkUpdateStatusBtn = document.getElementById('bulkUpdateStatusBtn');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    
+    if (bulkReassignBtn) bulkReassignBtn.addEventListener('click', bulkReassign);
+    if (bulkUpdateStatusBtn) bulkUpdateStatusBtn.addEventListener('click', bulkUpdateStatus);
+    if (bulkDeleteBtn) bulkDeleteBtn.addEventListener('click', bulkDelete);
+    
+    // Select all checkboxes
+    const selectAll = document.getElementById('selectAll');
+    const selectAllHeader = document.getElementById('selectAllHeader');
+    
+    if (selectAll) selectAll.addEventListener('change', toggleSelectAll);
+    if (selectAllHeader) selectAllHeader.addEventListener('change', toggleSelectAll);
+    
+    // Assignment strategy change
+    const assignmentStrategy = document.getElementById('assignmentStrategy');
+    if (assignmentStrategy) {
+        assignmentStrategy.addEventListener('change', function() {
+            const strategy = this.value;
+            const manualDiv = document.getElementById('manualAssignmentDiv');
+            if (manualDiv) {
+                manualDiv.style.display = strategy === 'manual' ? 'block' : 'none';
+            }
+        });
+    }
+    
+    // Filter inputs
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const divisionFilter = document.getElementById('divisionFilter');
+    const priorityFilter = document.getElementById('priorityFilter');
+    const personnelFilter = document.getElementById('personnelFilter');
+    
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (statusFilter) statusFilter.addEventListener('change', applyFilters);
+    if (divisionFilter) divisionFilter.addEventListener('change', applyFilters);
+    if (priorityFilter) priorityFilter.addEventListener('change', applyFilters);
+    if (personnelFilter) personnelFilter.addEventListener('change', applyFilters);
+    
+    // Add new lead from no results
+    const addLeadFromNoResults = document.getElementById('addLeadFromNoResults');
+    if (addLeadFromNoResults) addLeadFromNoResults.addEventListener('click', showAddForm);
+    
+    console.log('Event listeners setup complete');
+}
+
+// Basic functions
+function showAddForm() {
+    console.log('showAddForm called');
+    editingLeadId = null;
+    const modalTitle = document.getElementById('modalTitle');
+    if (modalTitle) modalTitle.textContent = 'Add New Lead';
+    clearForm();
+    const modal = new bootstrap.Modal(document.getElementById('leadModal'));
+    modal.show();
+}
+
+function showBulkAssignModal() {
+    console.log('showBulkAssignModal called');
+    const modal = new bootstrap.Modal(document.getElementById('bulkAssignModal'));
+    modal.show();
+}
+
+function clearForm() {
+    const elements = [
+        'companyName', 'contactName', 'contactPosition', 'email', 
+        'followupDate', 'dealValue', 'comments'
+    ];
+    
+    elements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.value = '';
+    });
+    
+    const division = document.getElementById('division');
+    const assignedTo = document.getElementById('assignedTo');
+    const priority = document.getElementById('priority');
+    
+    if (division) division.value = 'tech';
+    if (assignedTo) assignedTo.value = '';
+    if (priority) priority.value = 'medium';
+}
+
+// API calls
+async function apiCall(url, method = 'GET', data = null) {
+    const options = {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+        },
+    };
+    
+    if (data) {
+        options.body = JSON.stringify(data);
+    }
+    
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('API call failed:', error);
+        showAlert('API call failed: ' + error.message, 'danger');
+        throw error;
+    }
+}
+
+async function loadInitialData() {
+    try {
+        console.log('Loading initial data...');
+        showLoading(true);
+        
+        // Load personnel first
+        personnel = await apiCall('/api/personnel/');
+        console.log('Personnel loaded:', personnel.length);
+        populatePersonnelDropdowns();
+        
+        // Load leads
+        leads = await apiCall('/api/leads/');
+        console.log('Leads loaded:', leads.length);
+        
+        // Load analytics
+        analytics = await apiCall('/api/analytics/');
+        console.log('Analytics loaded');
+        
+        // Initial render
+        filteredLeads = leads.slice();
+        renderAll();
+        
+        showLoading(false);
+    } catch (error) {
+        console.error('Error loading initial data:', error);
+        showAlert('Error loading data: ' + error.message, 'danger');
+        showLoading(false);
+    }
+}
+
+function showLoading(show) {
+    const indicator = document.getElementById('loadingIndicator');
+    if (indicator) {
+        indicator.style.display = show ? 'block' : 'none';
+    }
+}
+
+function showAlert(message, type = 'success') {
+    console.log('Alert:', type, message);
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function populatePersonnelDropdowns() {
+    const dropdowns = ['assignedTo', 'bulkAssignPerson'];
+    const personnelFilter = document.getElementById('personnelFilter');
+    
+    if (personnelFilter) {
+        // Clear existing options (except first two)
+        const existingOptions = personnelFilter.querySelectorAll('option:not(:first-child):not([value="unassigned"])');
+        existingOptions.forEach(option => option.remove());
+        
+        // Populate filter dropdown
+        personnel.forEach(function(person) {
+            const option = document.createElement('option');
+            option.value = person.id;
+            option.textContent = person.name + ' (' + getDivisionLabel(person.division) + ')';
+            personnelFilter.appendChild(option);
+        });
+    }
+    
+    // Populate other dropdowns
+    dropdowns.forEach(function(dropdownId) {
+        const dropdown = document.getElementById(dropdownId);
+        if (dropdown) {
+            dropdown.innerHTML = '<option value="">Select Personnel</option>';
+            personnel.forEach(function(person) {
+                const option = document.createElement('option');
+                option.value = person.id;
+                option.textContent = person.name + ' (' + getDivisionLabel(person.division) + ')';
+                dropdown.appendChild(option);
+            });
+        }
+    });
+}
+
+function renderAll() {
+    console.log('Rendering all components...');
+    renderQuickViewCards();
+    renderAnalytics();
+    renderLeadsTable();
+    updateResultsCount();
+}
+
+function renderQuickViewCards() {
+    const quickViewCards = document.getElementById('quickViewCards');
+    if (!quickViewCards) return;
+    
+    const html = `
+        <div class="col-md-3 mb-3 col-lg-2">
+            <div class="card quick-view-card ${currentView === 'all' ? 'active' : ''}" onclick="setCurrentView('all')">
+                <div class="card-body text-center">
+                    <i class="bi bi-people fs-1 ${currentView === 'all' ? 'text-light' : 'text-primary'} mb-2"></i>
+                    <h3 class="card-title ${currentView === 'all' ? 'text-light' : 'text-primary'}">${leads.length}</h3>
+                    <p class="card-text ${currentView === 'all' ? 'text-light' : 'text-muted'}">All Leads</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3 col-lg-2">
+            <div class="card quick-view-card ${currentView === 'hot' ? 'active' : ''}" onclick="setCurrentView('hot')">
+                <div class="card-body text-center">
+                    <i class="bi bi-fire fs-1 ${currentView === 'hot' ? 'text-light' : 'text-danger'} mb-2"></i>
+                    <h3 class="card-title ${currentView === 'hot' ? 'text-light' : 'text-danger'}">${countByStatus('hot')}</h3>
+                    <p class="card-text ${currentView === 'hot' ? 'text-light' : 'text-muted'}">Hot Leads</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3 col-lg-2">
+            <div class="card quick-view-card ${currentView === 'qualified' ? 'active' : ''}" onclick="setCurrentView('qualified')">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle fs-1 ${currentView === 'qualified' ? 'text-light' : 'text-success'} mb-2"></i>
+                    <h3 class="card-title ${currentView === 'qualified' ? 'text-light' : 'text-success'}">${countByStatus('qualified')}</h3>
+                    <p class="card-text ${currentView === 'qualified' ? 'text-light' : 'text-muted'}">Qualified</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3 col-lg-2">
+            <div class="card quick-view-card ${currentView === 'unassigned' ? 'active' : ''}" onclick="setCurrentView('unassigned')">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-x fs-1 ${currentView === 'unassigned' ? 'text-light' : 'text-warning'} mb-2"></i>
+                    <h3 class="card-title ${currentView === 'unassigned' ? 'text-light' : 'text-warning'}">${countUnassigned()}</h3>
+                    <p class="card-text ${currentView === 'unassigned' ? 'text-light' : 'text-muted'}">Unassigned</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3 col-lg-2">
+            <div class="card quick-view-card ${currentView === 'high-priority' ? 'active' : ''}" onclick="setCurrentView('high-priority')">
+                <div class="card-body text-center">
+                    <i class="bi bi-star fs-1 ${currentView === 'high-priority' ? 'text-light' : 'text-info'} mb-2"></i>
+                    <h3 class="card-title ${currentView === 'high-priority' ? 'text-light' : 'text-info'}">${countByPriority('high')}</h3>
+                    <p class="card-text ${currentView === 'high-priority' ? 'text-light' : 'text-muted'}">High Priority</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    quickViewCards.innerHTML = html;
+}
+
+function setCurrentView(view) {
+    currentView = view;
+    renderQuickViewCards();
+    applyFilters();
+}
+
+function renderAnalytics() {
+    const totalPipeline = analytics.total_pipeline || 0;
+    const avgDeal = analytics.avg_deal || 0;
+    const conversionRate = analytics.conversion_rate || 0;
+
+    // Revenue Overview
+    const revenueOverview = document.getElementById('revenueOverview');
+    if (revenueOverview) {
+        revenueOverview.innerHTML = `
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="card analytics-card success">
+                        <div class="card-body text-center">
+                            <h3 class="text-success">$${totalPipeline.toLocaleString()}</h3>
+                            <small class="text-muted">Total Pipeline Value</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card analytics-card primary">
+                        <div class="card-body text-center">
+                            <h3 class="text-primary">$${Math.round(avgDeal).toLocaleString()}</h3>
+                            <small class="text-muted">Average Deal Size</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card analytics-card warning">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning">${conversionRate.toFixed(1)}%</h3>
+                            <small class="text-muted">Conversion Rate</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Division Performance
+    const divisions = [
+        {key: 'tech', label: 'Gralix Tech', color: 'primary'},
+        {key: 'actuarial', label: 'Gralix Actuarial', color: 'success'}, 
+        {key: 'capital', label: 'Gralix Capital', color: 'warning'}
+    ];
+    
+    const divisionPerformance = document.getElementById('divisionPerformance');
+    if (divisionPerformance) {
+        let divisionHtml = '<div class="row g-3">';
+        divisions.forEach(div => {
+            const divisionData = analytics.division_performance?.[div.key] || {count: 0, revenue: 0};
+            divisionHtml += `
+                <div class="col-12">
+                    <div class="card analytics-card ${div.color}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="text-${div.color}">${div.label}</h5>
+                                    <small class="text-muted">${divisionData.count} leads</small>
+                                </div>
+                                <h4 class="text-${div.color} mb-0">$${divisionData.revenue.toLocaleString()}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        divisionHtml += '</div>';
+        divisionPerformance.innerHTML = divisionHtml;
+    }
+
+    // Team Performance
+    const topPerformers = analytics.top_performers || [];
+    const teamPerformance = document.getElementById('teamPerformance');
+    if (teamPerformance) {
+        let teamHtml = '<div class="row g-2">';
+        topPerformers.slice(0, 3).forEach(performer => {
+            teamHtml += `
+                <div class="col-12">
+                    <div class="card analytics-card info">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="personnel-avatar me-3">${performer.avatar}</div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">${performer.name}</h6>
+                                    <small class="text-muted">${performer.leads_count} leads</small>
+                                </div>
+                                <h5 class="text-info mb-0">$${performer.total_value.toLocaleString()}</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        teamHtml += '</div>';
+        teamPerformance.innerHTML = teamHtml;
+    }
+
+    // Deal Stage Pipeline
+    const statusCounts = analytics.status_counts || {};
+    const stageStats = [
+        { 
+            label: 'New Leads', 
+            count: statusCounts.new || 0, 
+            value: calculateStatusValue('new'), 
+            color: 'primary' 
+        },
+        { 
+            label: 'In Progress', 
+            count: (statusCounts.contacted || 0) + (statusCounts.qualified || 0), 
+            value: calculateStatusValue('contacted') + calculateStatusValue('qualified'), 
+            color: 'info' 
+        },
+        { 
+            label: 'Hot Prospects', 
+            count: (statusCounts.hot || 0) + (statusCounts.proposal || 0), 
+            value: calculateStatusValue('hot') + calculateStatusValue('proposal'), 
+            color: 'warning' 
+        },
+        { 
+            label: 'Closing', 
+            count: statusCounts.negotiation || 0, 
+            value: calculateStatusValue('negotiation'), 
+            color: 'success' 
+        }
+    ];
+    
+    const dealStagePipeline = document.getElementById('dealStagePipeline');
+    if (dealStagePipeline) {
+        let stageHtml = '';
+        stageStats.forEach(stage => {
+            stageHtml += `
+                <div class="col-md-3">
+                    <div class="card analytics-card ${stage.color}">
+                        <div class="card-body text-center">
+                            <h4 class="text-${stage.color}">${stage.count}</h4>
+                            <h6 class="text-muted">${stage.label}</h6>
+                            <small class="text-muted">$${stage.value.toLocaleString()}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        dealStagePipeline.innerHTML = stageHtml;
+    }
+}
+
+function renderLeadsTable() {
+    const tbody = document.getElementById('leadsTableBody');
+    const noResultsDiv = document.getElementById('noResultsMessage');
+    
+    if (!tbody) return;
+    
+    if (filteredLeads.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center py-4">
+                    <i class="bi bi-search fs-1 text-muted mb-3"></i>
+                    <h4 class="text-muted">No leads found</h4>
+                    <p class="text-muted">Try adjusting your search criteria or add a new lead</p>
+                </td>
+            </tr>
+        `;
+        if (noResultsDiv) noResultsDiv.style.display = 'none';
+        return;
+    }
+    
+    if (noResultsDiv) noResultsDiv.style.display = 'none';
+    let html = '';
+
+    filteredLeads.forEach(lead => {
+        const hasRecentComm = lead.communications && lead.communications.length > 0;
+        
+        html += `
+            <tr data-lead-id="${lead.id}">
+                <td>
+                    <input type="checkbox" class="lead-checkbox" value="${lead.id}">
+                </td>
+                <td>
+                    <div class="d-flex align-items-start">
+                        <div class="flex-grow-1">
+                            <strong class="lead-company-link" data-action="view-detail" data-lead-id="${lead.id}" style="cursor: pointer; color: #0d6efd;">${lead.company}</strong>
+                            ${lead.comments ? '<br><small class="text-muted">' + lead.comments + '</small>' : ''}
+                            ${hasRecentComm ? '<div class="mt-1"><span class="badge bg-info text-dark"><i class="bi bi-clock me-1"></i>' + lead.communications[0].date + '</span></div>' : ''}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div>${lead.contact_name || '-'}</div>
+                    ${lead.position ? '<small class="text-muted">' + lead.position + '</small>' : ''}
+                    ${lead.email ? '<br><small><i class="bi bi-' + (lead.email.indexOf('@') !== -1 ? 'envelope' : 'telephone') + ' me-1"></i>' + lead.email + '</small>' : ''}
+                </td>
+                <td>
+                    ${lead.assigned_to_name ? 
+                        '<div class="d-flex align-items-center">' +
+                        '<div class="personnel-avatar me-2">' + lead.assigned_to_avatar + '</div>' +
+                        '<div>' +
+                        '<div class="fw-semibold">' + lead.assigned_to_name + '</div>' +
+                        '<small class="text-muted">' + getDivisionLabel(lead.assigned_to_division) + '</small>' +
+                        '</div></div>' 
+                        : 
+                        '<span class="text-muted">Unassigned</span><br><button class="btn btn-sm btn-outline-primary mt-1 quick-assign-btn" data-lead-id="' + lead.id + '">Assign</button>'
+                    }
+                </td>
+                <td><span class="badge division-${lead.division}">${getDivisionLabel(lead.division)}</span></td>
+                <td>
+                    ${getStatusBadge(lead.status)}
+                    <div class="mt-1">
+                        <div class="stage-progress">
+                            <div class="stage-progress-fill" style="width: ${lead.progress || 0}%"></div>
+                        </div>
+                        <small class="text-muted">${lead.progress || 0}% complete</small>
+                    </div>
+                </td>
+                <td><span class="priority-${lead.priority}">${lead.priority.toUpperCase()}</span></td>
+                <td><strong>$${(lead.deal_value || 0).toLocaleString()}</strong></td>
+                <td>
+                    ${lead.follow_up_date ? 
+                        (() => {
+                            const followupDate = new Date(lead.follow_up_date);
+                            const today = new Date();
+                            const isOverdue = followupDate < today;
+                            const dateClass = isOverdue ? 'text-danger' : 'text-success';
+                            return '<span class="' + dateClass + '"><i class="bi bi-calendar me-1"></i>' + lead.follow_up_date + '</span>' + 
+                                   (isOverdue ? '<br><small class="text-danger">Overdue</small>' : '');
+                        })()
+                        : 
+                        '<span class="text-muted">Not scheduled</span>'
+                    }
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-info view-detail-btn" data-lead-id="${lead.id}" title="View Details">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-primary edit-lead-btn" data-lead-id="${lead.id}" title="Edit Lead">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-outline-success log-communication-btn" data-lead-id="${lead.id}" title="Log Communication">
+                            <i class="bi bi-chat-dots"></i>
+                        </button>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" title="More Actions">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item reassign-lead-btn" href="#" data-lead-id="${lead.id}"><i class="bi bi-person-gear me-2"></i>Reassign</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger delete-lead-btn" href="#" data-lead-id="${lead.id}"><i class="bi bi-trash me-2"></i>Delete</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+    
+    // Add event listeners to table elements
+    setupTableEventListeners();
+}
+
+// Add this new function to handle table event listeners
+function setupTableEventListeners() {
+    const tbody = document.getElementById('leadsTableBody');
+    if (!tbody) return;
+    
+    // Remove existing listeners to prevent duplicates
+    tbody.removeEventListener('click', handleTableClick);
+    tbody.removeEventListener('change', handleTableChange);
+    
+    // Add event delegation for clicks
+    tbody.addEventListener('click', handleTableClick);
+    tbody.addEventListener('change', handleTableChange);
+}
+
+// Handle all table clicks with event delegation
+function handleTableClick(event) {
+    const target = event.target.closest('button, a, [data-action]');
+    if (!target) return;
+    
+    const leadId = parseInt(target.dataset.leadId);
+    const lead = findLeadById(leadId);
+    
+    if (!lead && !target.classList.contains('add-lead-from-no-results')) {
+        console.error('Lead not found:', leadId);
+        return;
+    }
+    
+    // Prevent default for anchor tags
+    if (target.tagName === 'A') {
+        event.preventDefault();
+    }
+    
+    // Handle different actions
+    if (target.classList.contains('view-detail-btn') || target.dataset.action === 'view-detail') {
+        console.log('View detail clicked for lead:', leadId);
+        showLeadDetail(leadId);
+    } else if (target.classList.contains('edit-lead-btn')) {
+        console.log('Edit lead clicked for lead:', leadId);
+        editLead(leadId);
+    } else if (target.classList.contains('log-communication-btn')) {
+        console.log('Log communication clicked for lead:', leadId);
+        showCommunicationModal(leadId);
+    } else if (target.classList.contains('reassign-lead-btn')) {
+        console.log('Reassign lead clicked for lead:', leadId);
+        showReassignModal(leadId);
+    } else if (target.classList.contains('delete-lead-btn')) {
+        console.log('Delete lead clicked for lead:', leadId);
+        deleteLead(leadId);
+    } else if (target.classList.contains('quick-assign-btn')) {
+        console.log('Quick assign clicked for lead:', leadId);
+        quickAssign(leadId);
+    }
+}
+
+// Handle checkbox changes
+function handleTableChange(event) {
+    if (event.target.classList.contains('lead-checkbox')) {
+        updateSelectedLeads();
+    }
+}
+
+// Modal functions
+function showLeadDetail(leadId) {
+    console.log('showLeadDetail called for lead:', leadId);
+    const lead = findLeadById(leadId);
+    if (lead) {
+        const commCount = lead.communications ? lead.communications.length : 0;
+        const assignedTo = lead.assigned_to_name || 'Unassigned';
+        
+        alert(`📋 Lead Details: ${lead.company}
+        
+👤 Contact: ${lead.contact_name || 'N/A'}
+📧 Email/Phone: ${lead.email || 'N/A'}
+🏢 Division: ${getDivisionLabel(lead.division)}
+⚡ Status: ${lead.status.toUpperCase()}
+💰 Value: $${(lead.deal_value || 0).toLocaleString()}
+👨‍💼 Assigned: ${assignedTo}
+🗨️ Communications: ${commCount}
+📅 Follow-up: ${lead.follow_up_date || 'Not scheduled'}
+
+${lead.comments ? '📝 Notes: ' + lead.comments : ''}`);
+    }
+}
+
+function editLead(leadId) {
+    console.log('editLead called for lead:', leadId);
+    const lead = findLeadById(leadId);
+    if (!lead) return;
+    
+    editingLeadId = leadId;
+    const modalTitle = document.getElementById('modalTitle');
+    if (modalTitle) modalTitle.textContent = 'Edit Lead - ' + lead.company;
+    populateForm(lead);
+    const modal = new bootstrap.Modal(document.getElementById('leadModal'));
+    modal.show();
+}
+
+function populateForm(lead) {
+    const formFields = {
+        'companyName': lead.company || '',
+        'contactName': lead.contact_name || '',
+        'contactPosition': lead.position || '',
+        'email': lead.email || '',
+        'followupDate': lead.follow_up_date || '',
+        'division': lead.division || 'tech',
+        'assignedTo': lead.assigned_to || '',
+        'priority': lead.priority || 'medium',
+        'dealValue': lead.deal_value || '',
+        'comments': lead.comments || ''
+    };
+    
+    Object.entries(formFields).forEach(([fieldId, value]) => {
+        const element = document.getElementById(fieldId);
+        if (element) element.value = value;
+    });
+}
+
+function showCommunicationModal(leadId) {
+    console.log('showCommunicationModal called for lead:', leadId);
+    const lead = findLeadById(leadId);
+    if (lead) {
+        const response = prompt(`Log Communication for: ${lead.company}
+
+Please enter your communication notes:`);
+        
+        if (response && response.trim()) {
+            alert(`Communication logged for ${lead.company}:
+"${response.trim()}"
+
+This would normally be saved to the database.`);
+        }
+    }
+}
+
+function showReassignModal(leadId) {
+    console.log('showReassignModal called for lead:', leadId);
+    const lead = findLeadById(leadId);
+    if (lead && personnel.length > 0) {
+        let options = 'Available Personnel:\n\n';
+        personnel.forEach((person, index) => {
+            options += `${index + 1}. ${person.name} (${getDivisionLabel(person.division)})\n`;
+        });
+        
+        const selection = prompt(`Reassign Lead: ${lead.company}
+
+${options}
+
+Enter the number of the person to assign this lead to:`);
+        
+        if (selection) {
+            const index = parseInt(selection) - 1;
+            if (index >= 0 && index < personnel.length) {
+                const selectedPerson = personnel[index];
+                if (confirm(`Reassign "${lead.company}" to ${selectedPerson.name}?`)) {
+                    alert(`Lead "${lead.company}" would be reassigned to ${selectedPerson.name}.`);
+                    // TODO: Implement actual reassignment API call
+                }
+            } else {
+                alert('Invalid selection. Please try again.');
+            }
+        }
+    }
+}
+
+async function deleteLead(leadId) {
+    console.log('deleteLead called for lead:', leadId);
+    const lead = findLeadById(leadId);
+    if (!lead) return;
+    
+    if (confirm('Are you sure you want to delete the lead for ' + lead.company + '?')) {
+        try {
+            showLoading(true);
+            await apiCall(`/api/leads/${leadId}/delete/`, 'DELETE');
+            
+            // Remove from local array
+            leads = leads.filter(l => l.id !== leadId);
+            selectedLeads = selectedLeads.filter(id => id !== leadId);
+            
+            // Reload data to get fresh analytics
+            await loadInitialData();
+            
+            showAlert('Lead deleted successfully');
+            showLoading(false);
+        } catch (error) {
+            console.error('Error deleting lead:', error);
+            showAlert('Error deleting lead: ' + error.message, 'danger');
+            showLoading(false);
+        }
+    }
+}
+
+function quickAssign(leadId) {
+    console.log('quickAssign called for lead:', leadId);
+    const lead = findLeadById(leadId);
+    if (!lead) return;
+    
+    // Auto-assign based on division expertise
+    const suitablePersonnel = personnel.filter(p => p.division === lead.division);
+    
+    if (suitablePersonnel.length > 0) {
+        // Find person with lowest workload in the division
+        const assignee = suitablePersonnel.reduce((prev, curr) => 
+            prev.workload < curr.workload ? prev : curr
+        );
+        
+        if (confirm(`Auto-assign "${lead.company}" to ${assignee.name} (${getDivisionLabel(assignee.division)})?
+
+This person has the lowest workload (${assignee.workload} leads) in the ${getDivisionLabel(lead.division)} division.`)) {
+            alert(`Lead "${lead.company}" would be assigned to ${assignee.name}.
+
+Note: This is a demo. In the full version, this would make an API call to assign the lead.`);
+            // TODO: Implement actual assignment API call
+        }
+    } else {
+        alert(`No personnel found for the ${getDivisionLabel(lead.division)} division.`);
+    }
+}
+
+// Save lead function
+async function saveLead() {
+    const companyName = document.getElementById('companyName');
+    const assignedTo = document.getElementById('assignedTo');
+    
+    if (!companyName || !companyName.value.trim()) {
+        alert('Company name is required');
+        if (companyName) companyName.focus();
+        return;
+    }
+
+    if (!assignedTo || !assignedTo.value) {
+        alert('Please assign this lead to a team member');
+        if (assignedTo) assignedTo.focus();
+        return;
+    }
+
+    const formData = {
+        company: companyName.value.trim(),
+        contact_name: getValue('contactName'),
+        position: getValue('contactPosition'),
+        email: getValue('email'),
+        follow_up_date: getValue('followupDate') || null,
+        division: getValue('division'),
+        priority: getValue('priority'),
+        deal_value: parseFloat(getValue('dealValue')) || 0,
+        comments: getValue('comments'),
+        assigned_to: parseInt(assignedTo.value)
+    };
+
+    try {
+        showLoading(true);
+        
+        if (editingLeadId) {
+            const response = await apiCall(`/api/leads/${editingLeadId}/update/`, 'PUT', formData);
+            const index = leads.findIndex(l => l.id === editingLeadId);
+            if (index !== -1) {
+                leads[index] = response;
+            }
+            showAlert('Lead updated successfully');
+        } else {
+            const response = await apiCall('/api/leads/create/', 'POST', formData);
+            leads.push(response);
+            showAlert('Lead created successfully');
+        }
+
+        const modalElement = document.getElementById('leadModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) modalInstance.hide();
+        
+        // Reload data to get fresh analytics
+        await loadInitialData();
+        
+        showLoading(false);
+    } catch (error) {
+        console.error('Error saving lead:', error);
+        showAlert('Error saving lead: ' + error.message, 'danger');
+        showLoading(false);
+    }
+}
+
+function getValue(elementId) {
+    const element = document.getElementById(elementId);
+    return element ? element.value.trim() : '';
+}
+
+// Bulk assignment function
+async function processBulkAssignment() {
+    const strategy = getValue('assignmentStrategy');
+    const scopeElement = document.querySelector('input[name="bulkScope"]:checked');
+    const scope = scopeElement ? scopeElement.value : 'unassigned';
+    const manualAssignee = getValue('bulkAssignPerson');
+    
+    if (strategy === 'manual' && !manualAssignee) {
+        alert('Please select a person to assign leads to');
+        return;
+    }
+    
+    try {
+        showLoading(true);
+        
+        const data = {
+            strategy: strategy,
+            scope: scope,
+            manual_assignee_id: manualAssignee ? parseInt(manualAssignee) : null
+        };
+        
+        const response = await apiCall('/api/bulk-assign/', 'POST', data);
+        
+        const modalElement = document.getElementById('bulkAssignModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) modalInstance.hide();
+        
+        // Reload all data
+        await loadInitialData();
+        
+        showAlert(response.message);
+        showLoading(false);
+    } catch (error) {
+        console.error('Error in bulk assignment:', error);
+        showAlert('Error in bulk assignment: ' + error.message, 'danger');
+        showLoading(false);
+    }
+}
+
+// Utility functions
+function updateSelectedLeads() {
+    const checkboxes = document.querySelectorAll('.lead-checkbox:checked');
+    selectedLeads = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    updateSelectAllState();
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const selectAllHeader = document.getElementById('selectAllHeader');
+    const checkboxes = document.querySelectorAll('.lead-checkbox');
+    
+    const isChecked = selectAll ? selectAll.checked : (selectAllHeader ? selectAllHeader.checked : false);
+    
+    checkboxes.forEach(cb => {
+        cb.checked = isChecked;
+    });
+    
+    updateSelectedLeads();
+}
+
+function updateSelectAllState() {
+    const checkboxes = document.querySelectorAll('.lead-checkbox');
+    const checkedBoxes = document.querySelectorAll('.lead-checkbox:checked');
+    const selectAll = document.getElementById('selectAll');
+    const selectAllHeader = document.getElementById('selectAllHeader');
+    
+    const setState = (element, indeterminate, checked) => {
+        if (element) {
+            element.indeterminate = indeterminate;
+            element.checked = checked;
+        }
+    };
+    
+    if (checkboxes.length === 0) {
+        setState(selectAll, false, false);
+        setState(selectAllHeader, false, false);
+    } else if (checkedBoxes.length === checkboxes.length) {
+        setState(selectAll, false, true);
+        setState(selectAllHeader, false, true);
+    } else if (checkedBoxes.length > 0) {
+        setState(selectAll, true, false);
+        setState(selectAllHeader, true, false);
+    } else {
+        setState(selectAll, false, false);
+        setState(selectAllHeader, false, false);
+    }
+}
+
+function applyFilters() {
+    console.log('Applying filters...');
+    const searchTerm = getValue('searchInput').toLowerCase();
+    const statusFilter = getValue('statusFilter');
+    const divisionFilter = getValue('divisionFilter');
+    const priorityFilter = getValue('priorityFilter');
+    const personnelFilter = getValue('personnelFilter');
+
+    filteredLeads = [];
+    for (let i = 0; i < leads.length; i++) {
+        const lead = leads[i];
+        let include = true;
+
+        // Search filter
+        if (searchTerm) {
+            const searchableText = (lead.company + ' ' + (lead.contact_name || '') + ' ' + (lead.comments || '') + ' ' + (lead.assigned_to_name || '')).toLowerCase();
+            if (searchableText.indexOf(searchTerm) === -1) {
+                include = false;
+            }
+        }
+
+        // Status filter
+        if (statusFilter !== 'all' && lead.status !== statusFilter) include = false;
+        
+        // Division filter
+        if (divisionFilter !== 'all' && lead.division !== divisionFilter) include = false;
+        
+        // Priority filter  
+        if (priorityFilter !== 'all' && lead.priority !== priorityFilter) include = false;
+        
+        // Personnel filter
+        if (personnelFilter !== 'all') {
+            if (personnelFilter === 'unassigned' && lead.assigned_to) include = false;
+            if (personnelFilter !== 'unassigned' && lead.assigned_to != personnelFilter) include = false;
+        }
+
+        // View-based filtering
+        if (currentView === 'hot' && lead.status !== 'hot') include = false;
+        if (currentView === 'qualified' && lead.status !== 'qualified') include = false;
+        if (currentView === 'high-priority' && lead.priority !== 'high') include = false;
+        if (currentView === 'unassigned' && lead.assigned_to) include = false;
+
+        if (include) filteredLeads.push(lead);
+    }
+
+    renderLeadsTable();
+    updateResultsCount();
+    selectedLeads = [];
+    updateSelectAllState();
+}
+
+function clearFilters() {
+    console.log('Clearing filters...');
+    const filterElements = [
+        'searchInput', 'statusFilter', 'divisionFilter', 
+        'priorityFilter', 'personnelFilter'
+    ];
+    
+    filterElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            if (element.tagName === 'SELECT') {
+                element.value = 'all';
+            } else {
+                element.value = '';
+            }
+        }
+    });
+    
+    currentView = 'all';
+    filteredLeads = leads.slice();
+    renderAll();
+}
+
+function updateResultsCount() {
+    const resultsCount = document.getElementById('resultsCount');
+    if (resultsCount) {
+        resultsCount.textContent = filteredLeads.length;
+    }
+}
+
+function countByStatus(status) {
+    return leads.filter(lead => lead.status === status).length;
+}
+
+function countByPriority(priority) {
+    return leads.filter(lead => lead.priority === priority).length;
+}
+
+function countUnassigned() {
+    return leads.filter(lead => !lead.assigned_to).length;
+}
+
+function calculateStatusValue(status) {
+    return leads.filter(lead => lead.status === status)
+               .reduce((sum, lead) => sum + (parseFloat(lead.deal_value) || 0), 0);
+}
+
+function getStatusBadge(status) {
+    const badges = {
+        new: '<span class="badge bg-primary"><i class="bi bi-star me-1"></i>New</span>',
+        contacted: '<span class="badge bg-info"><i class="bi bi-telephone me-1"></i>Contacted</span>',
+        qualified: '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Qualified</span>',
+        proposal: '<span class="badge bg-warning text-dark"><i class="bi bi-file-text me-1"></i>Proposal</span>',
+        negotiation: '<span class="badge bg-orange"><i class="bi bi-chat-square-dots me-1"></i>Negotiation</span>',
+        hot: '<span class="badge bg-danger"><i class="bi bi-fire me-1"></i>Hot</span>',
+        won: '<span class="badge bg-success"><i class="bi bi-trophy me-1"></i>Won</span>',
+        lost: '<span class="badge bg-dark"><i class="bi bi-x-circle me-1"></i>Lost</span>',
+        inactive: '<span class="badge bg-secondary"><i class="bi bi-pause-circle me-1"></i>Inactive</span>'
+    };
+    return badges[status] || badges.new;
+}
+
+function getDivisionLabel(division) {
+    const labels = {
+        tech: 'Gralix Tech',
+        actuarial: 'Gralix Actuarial',
+        capital: 'Gralix Capital'
+    };
+    return labels[division] || division;
+}
+
+// Helper function to find lead by ID
+function findLeadById(id) {
+    return leads.find(lead => lead.id === id);
+}
+
+// Bulk operation functions
+function bulkReassign() {
+    console.log('Bulk reassign');
+    if (selectedLeads.length === 0) {
+        alert('Please select leads to reassign');
+        return;
+    }
+    
+    if (personnel.length === 0) {
+        alert('No personnel available for reassignment');
+        return;
+    }
+    
+    let options = `Reassign ${selectedLeads.length} selected leads to:\n\n`;
+    personnel.forEach((person, index) => {
+        options += `${index + 1}. ${person.name} (${getDivisionLabel(person.division)})\n`;
+    });
+    
+    const selection = prompt(options + '\nEnter the number of the person:');
+    
+    if (selection) {
+        const index = parseInt(selection) - 1;
+        if (index >= 0 && index < personnel.length) {
+            const selectedPerson = personnel[index];
+            const reason = prompt(`Reason for bulk reassignment to ${selectedPerson.name}:`);
+            
+            if (reason && reason.trim()) {
+                if (confirm(`Reassign ${selectedLeads.length} leads to ${selectedPerson.name}?\n\nReason: ${reason.trim()}`)) {
+                    alert(`${selectedLeads.length} leads would be reassigned to ${selectedPerson.name}.
+
+Note: This is a demo. In the full version, this would make API calls to reassign all selected leads.`);
+                    // TODO: Implement actual bulk reassignment API calls
+                    selectedLeads = [];
+                    updateSelectAllState();
+                }
+            }
+        } else {
+            alert('Invalid selection. Please try again.');
+        }
+    }
+}
+
+function bulkUpdateStatus() {
+    console.log('Bulk update status');
+    if (selectedLeads.length === 0) {
+        alert('Please select leads to update');
+        return;
+    }
+    
+    const statusOptions = `Update status for ${selectedLeads.length} selected leads:
+
+1. New
+2. Contacted  
+3. Qualified
+4. Proposal
+5. Negotiation
+6. Hot
+7. Won
+8. Lost
+9. Inactive
+
+Enter the number of the new status:`;
+    
+    const selection = prompt(statusOptions);
+    const statusMap = {
+        '1': 'new', '2': 'contacted', '3': 'qualified', '4': 'proposal',
+        '5': 'negotiation', '6': 'hot', '7': 'won', '8': 'lost', '9': 'inactive'
+    };
+    
+    if (selection && statusMap[selection]) {
+        const newStatus = statusMap[selection];
+        const statusLabel = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+        
+        if (confirm(`Update ${selectedLeads.length} leads to "${statusLabel}" status?`)) {
+            alert(`${selectedLeads.length} leads would be updated to "${statusLabel}" status.
+
+Note: This is a demo. In the full version, this would make API calls to update all selected leads.`);
+            // TODO: Implement actual bulk status update API calls
+            selectedLeads = [];
+            updateSelectAllState();
+        }
+    } else if (selection) {
+        alert('Invalid selection. Please try again.');
+    }
+}
+
+function bulkDelete() {
+    console.log('Bulk delete');
+    if (selectedLeads.length === 0) {
+        alert('Please select leads to delete');
+        return;
+    }
+    
+    const leadNames = selectedLeads.map(id => {
+        const lead = findLeadById(id);
+        return lead ? lead.company : 'Unknown';
+    }).slice(0, 5); // Show first 5 names
+    
+    const namesList = leadNames.join('\n• ');
+    const moreText = selectedLeads.length > 5 ? `\n...and ${selectedLeads.length - 5} more` : '';
+    
+    const confirmMessage = `⚠️ DELETE ${selectedLeads.length} LEADS ⚠️
+
+This will permanently delete:
+• ${namesList}${moreText}
+
+This action cannot be undone!
+
+Are you absolutely sure?`;
+    
+    if (confirm(confirmMessage)) {
+        // Double confirmation for destructive action
+        if (confirm(`Last chance! Really delete ${selectedLeads.length} leads?`)) {
+            alert(`${selectedLeads.length} leads would be permanently deleted.
+
+Note: This is a demo. In the full version, this would make API calls to delete all selected leads.`);
+            // TODO: Implement actual bulk delete API calls
+            selectedLeads = [];
+            updateSelectAllState();
+        }
+    }
+}
+
+// Additional utility functions for better user experience
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Not set';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+function getProgressColor(progress) {
+    if (progress >= 80) return 'success';
+    if (progress >= 60) return 'info';
+    if (progress >= 40) return 'warning';
+    return 'danger';
+}
+
+// Export functions for potential external use
+window.LeadManagement = {
+    showAddForm,
+    showBulkAssignModal,
+    editLead,
+    deleteLead,
+    quickAssign,
+    applyFilters,
+    clearFilters,
+    loadInitialData,
+    // Utility functions
+    formatCurrency,
+    formatDate,
+    getDivisionLabel,
+    getStatusBadge
+};
+
+// Debug function for development
+function debugInfo() {
+    console.log('=== Lead Management Debug Info ===');
+    console.log('Total Leads:', leads.length);
+    console.log('Filtered Leads:', filteredLeads.length);
+    console.log('Selected Leads:', selectedLeads.length);
+    console.log('Personnel Count:', personnel.length);
+    console.log('Current View:', currentView);
+    console.log('Analytics:', analytics);
+    console.log('===================================');
+}
+
+// Make debug function available globally
+window.debugLeadManagement = debugInfo;
+</script>
+
+    {% endblock %}
