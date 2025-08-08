@@ -10,7 +10,7 @@
                     <div class="d-flex align-items-center mb-2">
                         <i class="bi bi-building fs-1 me-3"></i>
                         <div>
-                            <h1 class="mb-0 fs-2 te fw-bold">Gralix Holdings</h1>
+                            <h1 class="mb-0 fs-2 te fw-bold">Gralix</h1>
                             <p class="mb-0 text-light">Lead Management System</p>
                         </div>
                     </div>
@@ -869,7 +869,7 @@ function renderAnalytics() {
                 <div class="col-6">
                     <div class="card analytics-card">
                         <div class="card-body text-center">
-                            <h3 class="text-success">$${totalPipeline.toLocaleString()}</h3>
+                            <h3 class="text-success">K${totalPipeline.toLocaleString()}</h3>
                             <small class="text-muted">Total Pipeline Value</small>
                         </div>
                     </div>
@@ -877,7 +877,7 @@ function renderAnalytics() {
                 <div class="col-6">
                     <div class="card analytics-card">
                         <div class="card-body text-center">
-                            <h3 class="text-primary">$${Math.round(avgDeal).toLocaleString()}</h3>
+                            <h3 class="text-primary">K${Math.round(avgDeal).toLocaleString()}</h3>
                             <small class="text-muted">Average Deal Size</small>
                         </div>
                     </div>
@@ -915,7 +915,7 @@ function renderAnalytics() {
                                     <h5 class="text-${div.color}">${div.label}</h5>
                                     <small class="text-muted">${divisionData.count} leads</small>
                                 </div>
-                                <h4 class="text-${div.color} mb-0">$${divisionData.revenue.toLocaleString()}</h4>
+                                <h4 class="text-${div.color} mb-0">K${divisionData.revenue.toLocaleString()}</h4>
                             </div>
                         </div>
                     </div>
@@ -942,7 +942,7 @@ function renderAnalytics() {
                                     <h6 class="mb-0">${performer.name}</h6>
                                     <small class="text-muted">${performer.leads_count} leads</small>
                                 </div>
-                                <h5 class="text-info mb-0">$${performer.total_value.toLocaleString()}</h5>
+                                <h5 class="text-info mb-0">K${performer.total_value.toLocaleString()}</h5>
                             </div>
                         </div>
                     </div>
@@ -992,7 +992,7 @@ function renderAnalytics() {
                         <div class="card-body text-center">
                             <h4 class="text-${stage.color}">${stage.count}</h4>
                             <h6 class="text-muted">${stage.label}</h6>
-                            <small class="text-muted">$${stage.value.toLocaleString()}</small>
+                            <small class="text-muted">K${stage.value.toLocaleString()}</small>
                         </div>
                     </div>
                 </div>
@@ -1744,7 +1744,7 @@ Note: This is a demo. In the full version, this would make API calls to delete a
 function formatCurrency(amount) {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'ZMW',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
     }).format(amount);
