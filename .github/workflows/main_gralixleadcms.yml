@@ -2,7 +2,7 @@
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 # More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
 
-name: Build and deploy Python app to Azure Web App - gralixLeadcmd
+name: Build and deploy Python app to Azure Web App - gralixleadcms
 
 on:
   push:
@@ -58,14 +58,14 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9F2EDD169EB14BC8B08E2BB12B6678C9 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9774339336614B73A5F3A7D1FBA95514 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_EA3BEE3B7E6C4D62BD0F6CA05057B4F4 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_55D07C974A374592BFF6B135AD2632B8 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5E1AA66FD3C7410FAD9034D961D28B43 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C9371A81BCA54AE18E3F6AC1E9AE959F }}
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: 'gralixLeadcmd'
+          app-name: 'gralixleadcms'
           slot-name: 'Production'
           
