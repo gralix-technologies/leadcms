@@ -28,10 +28,10 @@ SECRET_KEY = 'django-insecure-f0qopkb0u(gda(9=04o9z(^^sp3x^+os+y#w3)nv%c5l+uui9t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*','https://gralixleadcms-brcfavdqgkbqbtht.canadacentral-01.azurewebsites.net']
+ALLOWED_HOSTS = ['https://lead.gralix.co','https://gralixleadcms-brcfavdqgkbqbtht.canadacentral-01.azurewebsites.net']
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://gralixleadcms-brcfavdqgkbqbtht.canadacentral-01.azurewebsites.net',
+    'https://lead.gralix.co',
     # ... other trusted origins
 ]
 # Application definition
