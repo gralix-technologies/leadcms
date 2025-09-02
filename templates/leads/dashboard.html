@@ -1070,7 +1070,7 @@ function renderLeadsTable() {
                     </div>
                 </td>
                 <td><span class="priority-${lead.priority}">${lead.priority.toUpperCase()}</span></td>
-                <td><strong>$${(lead.deal_value || 0).toLocaleString()}</strong></td>
+                <td><strong>K${parseFloat(lead.deal_value || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
                 <td>
                     ${lead.follow_up_date ? 
                         (() => {
