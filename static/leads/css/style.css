@@ -1271,3 +1271,205 @@ body::before {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* ============================================
+   CRITICAL BOOTSTRAP OVERRIDES
+   These !important rules override Bootstrap defaults
+   ============================================ */
+
+/* Force dark body background */
+body {
+    background: var(--dark-base) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Force all tables to use dark mode */
+.table {
+    color: var(--text-primary) !important;
+    background-color: var(--dark-surface) !important;
+    border-color: var(--dark-border) !important;
+}
+
+/* Force table header dark mode */
+.table thead th,
+.table-dark thead th,
+.table>thead>tr>th {
+    background: linear-gradient(135deg, var(--dark-surface-elevated) 0%, #2d3347 100%) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--dark-border) !important;
+    border-bottom: 2px solid var(--brand-blue) !important;
+}
+
+/* Force table body dark mode */
+.table tbody,
+.table tbody tr,
+.table>tbody>tr {
+    background: var(--dark-surface) !important;
+    color: var(--text-primary) !important;
+}
+
+.table tbody td,
+.table tbody th,
+.table>tbody>tr>td,
+.table>tbody>tr>th {
+    background: var(--dark-surface) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--dark-border) !important;
+}
+
+/* Force table hover state */
+.table-hover tbody tr:hover,
+.table-hover>tbody>tr:hover {
+    background: var(--dark-surface-hover) !important;
+    color: var(--text-primary) !important;
+    box-shadow: inset 0 0 0 1px var(--brand-blue) !important;
+}
+
+.table-hover tbody tr:hover td,
+.table-hover>tbody>tr:hover>td {
+    background: var(--dark-surface-hover) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Force dark mode for all table text */
+.table small,
+.table strong,
+.table a {
+    color: inherit !important;
+}
+
+.table .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* Override Bootstrap's table striped */
+.table-striped>tbody>tr:nth-of-type(odd)>* {
+    background-color: rgba(26, 31, 46, 0.5) !important;
+}
+
+/* Override Bootstrap's table bordered */
+.table-bordered> :not(caption)>*,
+.table-bordered> :not(caption)>*>* {
+    border-color: var(--dark-border) !important;
+}
+
+/* Force table responsive container */
+.table-responsive {
+    background: var(--dark-surface) !important;
+}
+
+/* Override any Bootstrap light backgrounds */
+.bg-light {
+    background: var(--dark-surface) !important;
+}
+
+/* Force all cards to be dark */
+.card {
+    background: var(--dark-surface) !important;
+    border-color: var(--dark-border) !important;
+}
+
+.card-header {
+    background: var(--dark-surface-elevated) !important;
+    border-color: var(--dark-border) !important;
+    color: var(--text-primary) !important;
+}
+
+.card-body {
+    background: var(--dark-surface) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Force forms dark */
+.form-control,
+.form-select {
+    background-color: var(--dark-surface-elevated) !important;
+    border-color: var(--dark-border) !important;
+    color: var(--text-primary) !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--dark-surface-hover) !important;
+    border-color: var(--brand-blue) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Force input groups dark */
+.input-group-text {
+    background-color: var(--dark-surface-elevated) !important;
+    border-color: var(--dark-border) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* Force all text to be light colored */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+div,
+label {
+    color: inherit;
+}
+
+/* Ensure dropdown menus are dark */
+.dropdown-menu {
+    background-color: var(--dark-surface-elevated) !important;
+    border-color: var(--dark-border) !important;
+}
+
+.dropdown-item {
+    color: var(--text-primary) !important;
+}
+
+.dropdown-item:hover {
+    background-color: var(--dark-surface-hover) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Force modal dark mode */
+.modal-content {
+    background-color: var(--dark-surface) !important;
+    border-color: var(--dark-border) !important;
+}
+
+.modal-header {
+    background-color: var(--dark-surface-elevated) !important;
+    border-color: var(--dark-border) !important;
+}
+
+.modal-body {
+    background-color: var(--dark-surface) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-footer {
+    background-color: var(--dark-surface) !important;
+    border-color: var(--dark-border) !important;
+}
+
+/* Force alert dark mode */
+.alert {
+    background-color: var(--dark-surface) !important;
+}
+
+/* Ensure checkboxes are visible */
+.form-check-input {
+    background-color: var(--dark-surface-elevated) !important;
+    border-color: var(--dark-border) !important;
+}
+
+.form-check-input:checked {
+    background-color: var(--brand-blue) !important;
+    border-color: var(--brand-blue) !important;
+}
+
+.form-check-label {
+    color: var(--text-primary) !important;
+}
+
+/* END OF CRITICAL OVERRIDES */
