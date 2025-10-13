@@ -1,4 +1,4 @@
-{% extends 'leads/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block content %}
@@ -316,7 +316,7 @@
                                             <option value="{{ user.division }}">{{ user.get_division_display }}</option>
                                         {% endif %}
                                     </select>
-                                    
+
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Assign To *</label>
@@ -523,5 +523,5 @@
         </div>
     </div>
 
-    <script src="{% static 'leads/js/dashboard.js' %}"></script>
+    <!--<script src="{% static 'leads/js/dashboard.js' %}"></script>-->
 {% endblock %}
