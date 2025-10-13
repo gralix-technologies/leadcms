@@ -26,26 +26,6 @@ function getCookie(name) {
 
 const csrftoken = getCookie('csrftoken');
 
-// ZMW Currency Formatting Function
-function formatCurrency(amount) {
-    if (typeof amount === 'undefined' || amount === null) {
-        return 'K 0';
-    }
-
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount)) {
-        return 'K 0';
-    }
-
-    // Format with comma separators for Zambian Kwacha
-    const formattedNumber = numAmount.toLocaleString('en-US', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-
-    return `K ${formattedNumber}`;
-}
-
 // API calls
 async function apiCall(url, method = 'GET', data = null) {
     const options = {
@@ -55,17 +35,17 @@ async function apiCall(url, method = 'GET', data = null) {
             'X-CSRFToken': csrftoken,
         },
     };
-
+    
     if (data) {
         options.body = JSON.stringify(data);
     }
-
+    
     const response = await fetch(url, options);
     return response.json();
 }
 
 // Initialize app when page loads
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     loadInitialData();
     setupEventListeners();
 });
@@ -73,21 +53,21 @@ document.addEventListener('DOMContentLoaded', function () {
 async function loadInitialData() {
     try {
         showLoading(true);
-
+        
         // Load personnel first
         personnel = await apiCall('/api/personnel/');
         populatePersonnelDropdowns();
-
+        
         // Load leads
         leads = await apiCall('/api/leads/');
-
+        
         // Load analytics
         analytics = await apiCall('/api/analytics/');
-
+        
         // Initial render
         filteredLeads = leads.slice();
         renderAll();
-
+        
         showLoading(false);
     } catch (error) {
         console.error('Error loading initial data:', error);
@@ -114,9 +94,9 @@ function showAlert(message, type = 'success') {
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-
+    
     document.body.appendChild(alertDiv);
-
+    
     // Auto remove after 5 seconds
     setTimeout(() => {
         if (alertDiv.parentNode) {
@@ -131,9 +111,9 @@ function setupEventListeners() {
     document.getElementById('divisionFilter').addEventListener('change', applyFilters);
     document.getElementById('priorityFilter').addEventListener('change', applyFilters);
     document.getElementById('personnelFilter').addEventListener('change', applyFilters);
-
+    
     // Assignment strategy change
-    document.getElementById('assignmentStrategy').addEventListener('change', function () {
+    document.getElementById('assignmentStrategy').addEventListener('change', function() {
         var strategy = this.value;
         var manualDiv = document.getElementById('manualAssignmentDiv');
         manualDiv.style.display = strategy === 'manual' ? 'block' : 'none';
@@ -143,25 +123,25 @@ function setupEventListeners() {
 function populatePersonnelDropdowns() {
     var dropdowns = ['assignedTo', 'reassignTo', 'bulkAssignPerson'];
     var personnelFilter = document.getElementById('personnelFilter');
-
+    
     // Clear existing options (except first one)
     const existingOptions = personnelFilter.querySelectorAll('option:not(:first-child):not([value="unassigned"])');
     existingOptions.forEach(option => option.remove());
-
+    
     // Populate filter dropdown
-    personnel.forEach(function (person) {
+    personnel.forEach(function(person) {
         var option = document.createElement('option');
         option.value = person.id;
         option.textContent = person.name + ' (' + getDivisionLabel(person.division) + ')';
         personnelFilter.appendChild(option);
     });
-
+    
     // Populate other dropdowns
-    dropdowns.forEach(function (dropdownId) {
+    dropdowns.forEach(function(dropdownId) {
         var dropdown = document.getElementById(dropdownId);
         if (dropdown) {
             dropdown.innerHTML = '<option value="">Select Personnel</option>';
-            personnel.forEach(function (person) {
+            personnel.forEach(function(person) {
                 var option = document.createElement('option');
                 option.value = person.id;
                 option.textContent = person.name + ' (' + getDivisionLabel(person.division) + ')';
@@ -183,7 +163,7 @@ function renderQuickViewCards() {
     var cards = [
         {
             key: 'all',
-            label: 'All Leads',
+            label: 'All Leads', 
             count: leads.length,
             color: 'primary',
             icon: 'people'
@@ -192,7 +172,7 @@ function renderQuickViewCards() {
             key: 'hot',
             label: 'Hot Leads',
             count: countByStatus('hot'),
-            color: 'danger',
+            color: 'danger', 
             icon: 'fire'
         },
         {
@@ -222,7 +202,7 @@ function renderQuickViewCards() {
         var card = cards[i];
         var activeClass = currentView === card.key ? 'active' : '';
         var textClass = currentView === card.key ? 'text-light' : 'text-' + card.color;
-
+        
         html += '<div class="col-md-3 mb-3 col-lg-2">';
         html += '<div class="card quick-view-card ' + activeClass + '" onclick="setCurrentView(\'' + card.key + '\')">';
         html += '<div class="card-body text-center">';
@@ -231,7 +211,7 @@ function renderQuickViewCards() {
         html += '<p class="card-text ' + (currentView === card.key ? 'text-light' : 'text-muted') + '">' + card.label + '</p>';
         html += '</div></div></div>';
     }
-
+    
     document.getElementById('quickViewCards').innerHTML = html;
 }
 
@@ -240,23 +220,25 @@ function renderAnalytics() {
     var avgDeal = analytics.avg_deal || 0;
     var conversionRate = analytics.conversion_rate || 0;
 
-    // Revenue Overview - Using ZMW formatting
+    // Revenue Overview
     var revenueHtml = '';
     revenueHtml += '<div class="row g-3">';
     revenueHtml += '<div class="col-6">';
     revenueHtml += '<div class="card analytics-card success">';
     revenueHtml += '<div class="card-body text-center">';
-    revenueHtml += '<h3 class="text-success">' + formatCurrency(totalPipeline) + '</h3>';
+    revenueHtml += '<h3 class="text-success">
+     + totalPipeline.toLocaleString() + '</h3>';
     revenueHtml += '<small class="text-muted">Total Pipeline Value</small>';
     revenueHtml += '</div></div></div>';
-
+    
     revenueHtml += '<div class="col-6">';
     revenueHtml += '<div class="card analytics-card primary">';
     revenueHtml += '<div class="card-body text-center">';
-    revenueHtml += '<h3 class="text-primary">' + formatCurrency(Math.round(avgDeal)) + '</h3>';
+    revenueHtml += '<h3 class="text-primary">
+     + Math.round(avgDeal).toLocaleString() + '</h3>';
     revenueHtml += '<small class="text-muted">Average Deal Size</small>';
     revenueHtml += '</div></div></div>';
-
+    
     revenueHtml += '<div class="col-12">';
     revenueHtml += '<div class="card analytics-card warning">';
     revenueHtml += '<div class="card-body text-center">';
@@ -264,23 +246,23 @@ function renderAnalytics() {
     revenueHtml += '<small class="text-muted">Conversion Rate (Qualified + Hot)</small>';
     revenueHtml += '</div></div></div>';
     revenueHtml += '</div>';
-
+    
     document.getElementById('revenueOverview').innerHTML = revenueHtml;
 
-    // Division Performance - Using ZMW formatting
+    // Division Performance
     var divisionHtml = '';
     divisionHtml += '<div class="row g-3">';
-
+    
     var divisions = [
-        { key: 'tech', label: 'Gralix Tech', color: 'primary' },
-        { key: 'actuarial', label: 'Gralix Actuarial', color: 'success' },
-        { key: 'capital', label: 'Gralix Capital', color: 'warning' }
+        {key: 'tech', label: 'Gralix Tech', color: 'primary'},
+        {key: 'actuarial', label: 'Gralix Actuarial', color: 'success'}, 
+        {key: 'capital', label: 'Gralix Capital', color: 'warning'}
     ];
-
+    
     for (var i = 0; i < divisions.length; i++) {
         var div = divisions[i];
-        var divisionData = analytics.division_performance[div.key] || { count: 0, revenue: 0 };
-
+        var divisionData = analytics.division_performance[div.key] || {count: 0, revenue: 0};
+        
         divisionHtml += '<div class="col-12">';
         divisionHtml += '<div class="card analytics-card ' + div.color + '">';
         divisionHtml += '<div class="card-body">';
@@ -289,21 +271,22 @@ function renderAnalytics() {
         divisionHtml += '<h5 class="text-' + div.color + '">' + div.label + '</h5>';
         divisionHtml += '<small class="text-muted">' + divisionData.count + ' leads</small>';
         divisionHtml += '</div>';
-        divisionHtml += '<h4 class="text-' + div.color + ' mb-0">' + formatCurrency(divisionData.revenue) + '</h4>';
+        divisionHtml += '<h4 class="text-' + div.color + ' mb-0">
+     + divisionData.revenue.toLocaleString() + '</h4>';
         divisionHtml += '</div></div></div></div>';
     }
     divisionHtml += '</div>';
-
+    
     document.getElementById('divisionPerformance').innerHTML = divisionHtml;
 
-    // Team Performance - Using ZMW formatting
+    // Team Performance
     var teamHtml = '';
     teamHtml += '<div class="row g-2">';
-
+    
     var topPerformers = analytics.top_performers || [];
     for (var i = 0; i < Math.min(3, topPerformers.length); i++) {
         var performer = topPerformers[i];
-
+        
         teamHtml += '<div class="col-12">';
         teamHtml += '<div class="card analytics-card info">';
         teamHtml += '<div class="card-body">';
@@ -313,43 +296,44 @@ function renderAnalytics() {
         teamHtml += '<h6 class="mb-0">' + performer.name + '</h6>';
         teamHtml += '<small class="text-muted">' + performer.leads_count + ' leads</small>';
         teamHtml += '</div>';
-        teamHtml += '<h5 class="text-info mb-0">' + formatCurrency(performer.total_value) + '</h5>';
+        teamHtml += '<h5 class="text-info mb-0">
+     + performer.total_value.toLocaleString() + '</h5>';
         teamHtml += '</div></div></div></div>';
     }
     teamHtml += '</div>';
-
+    
     document.getElementById('teamPerformance').innerHTML = teamHtml;
 
-    // Deal Stage Pipeline - Using ZMW formatting
+    // Deal Stage Pipeline
     var stageHtml = '';
     var statusCounts = analytics.status_counts || {};
     var stageStats = [
-        {
-            label: 'New Leads',
-            count: statusCounts.new || 0,
-            value: calculateStatusValue('new'),
-            color: 'primary'
+        { 
+            label: 'New Leads', 
+            count: statusCounts.new || 0, 
+            value: calculateStatusValue('new'), 
+            color: 'primary' 
         },
-        {
-            label: 'In Progress',
-            count: (statusCounts.contacted || 0) + (statusCounts.qualified || 0),
-            value: calculateStatusValue('contacted') + calculateStatusValue('qualified'),
-            color: 'info'
+        { 
+            label: 'In Progress', 
+            count: (statusCounts.contacted || 0) + (statusCounts.qualified || 0), 
+            value: calculateStatusValue('contacted') + calculateStatusValue('qualified'), 
+            color: 'info' 
         },
-        {
-            label: 'Hot Prospects',
-            count: (statusCounts.hot || 0) + (statusCounts.proposal || 0),
-            value: calculateStatusValue('hot') + calculateStatusValue('proposal'),
-            color: 'warning'
+        { 
+            label: 'Hot Prospects', 
+            count: (statusCounts.hot || 0) + (statusCounts.proposal || 0), 
+            value: calculateStatusValue('hot') + calculateStatusValue('proposal'), 
+            color: 'warning' 
         },
-        {
-            label: 'Closing',
-            count: statusCounts.negotiation || 0,
-            value: calculateStatusValue('negotiation'),
-            color: 'success'
+        { 
+            label: 'Closing', 
+            count: statusCounts.negotiation || 0, 
+            value: calculateStatusValue('negotiation'), 
+            color: 'success' 
         }
     ];
-
+    
     for (var i = 0; i < stageStats.length; i++) {
         var stage = stageStats[i];
         stageHtml += '<div class="col-md-3">';
@@ -357,37 +341,38 @@ function renderAnalytics() {
         stageHtml += '<div class="card-body text-center">';
         stageHtml += '<h4 class="text-' + stage.color + '">' + stage.count + '</h4>';
         stageHtml += '<h6 class="text-muted">' + stage.label + '</h6>';
-        stageHtml += '<small class="text-muted">' + formatCurrency(stage.value) + '</small>';
+        stageHtml += '<small class="text-muted">
+     + stage.value.toLocaleString() + '</small>';
         stageHtml += '</div></div></div>';
     }
-
+    
     document.getElementById('dealStagePipeline').innerHTML = stageHtml;
 }
 
 function renderLeadsTable() {
     var tbody = document.getElementById('leadsTableBody');
     var noResultsDiv = document.getElementById('noResultsMessage');
-
+    
     if (filteredLeads.length === 0) {
         tbody.innerHTML = '';
         noResultsDiv.style.display = 'block';
         return;
     }
-
+    
     noResultsDiv.style.display = 'none';
     var html = '';
 
     for (var i = 0; i < filteredLeads.length; i++) {
         var lead = filteredLeads[i];
         var hasRecentComm = lead.communications && lead.communications.length > 0;
-
+        
         html += '<tr>';
-
+        
         // Checkbox column
         html += '<td>';
         html += '<input type="checkbox" class="lead-checkbox" value="' + lead.id + '" onchange="updateSelectedLeads()">';
         html += '</td>';
-
+        
         // Company column
         html += '<td>';
         html += '<div class="d-flex align-items-start">';
@@ -397,11 +382,11 @@ function renderLeadsTable() {
             html += '<br><small class="text-muted">' + lead.comments + '</small>';
         }
         if (hasRecentComm) {
-            var lastComm = lead.communications[0];
+            var lastComm = lead.communications[0]; // Communications are ordered by date desc
             html += '<div class="mt-1"><span class="badge bg-info text-dark"><i class="bi bi-clock me-1"></i>' + lastComm.date + '</span></div>';
         }
         html += '</div></div></td>';
-
+        
         // Contact column  
         html += '<td>';
         html += '<div>' + (lead.contact_name || '-') + '</div>';
@@ -413,7 +398,7 @@ function renderLeadsTable() {
             html += '<br><small><i class="bi bi-' + iconClass + ' me-1"></i>' + lead.email + '</small>';
         }
         html += '</td>';
-
+        
         // Assigned To column
         html += '<td>';
         if (lead.assigned_to_name) {
@@ -428,10 +413,10 @@ function renderLeadsTable() {
             html += '<br><button class="btn btn-sm btn-outline-primary mt-1" onclick="quickAssign(' + lead.id + ')">Assign</button>';
         }
         html += '</td>';
-
+        
         // Division column
         html += '<td><span class="badge division-' + lead.division + '">' + getDivisionLabel(lead.division) + '</span></td>';
-
+        
         // Status & Progress column
         html += '<td>';
         html += getStatusBadge(lead.status);
@@ -442,13 +427,14 @@ function renderLeadsTable() {
         html += '<small class="text-muted">' + (lead.progress || 0) + '% complete</small>';
         html += '</div>';
         html += '</td>';
-
+        
         // Priority column
         html += '<td><span class="priority-' + lead.priority + '">' + lead.priority.toUpperCase() + '</span></td>';
-
-        // Deal Value column - Using ZMW formatting
-        html += '<td><strong>' + formatCurrency(lead.deal_value) + '</strong></td>';
-
+        
+        // Deal Value column
+        html += '<td><strong>
+     + (lead.deal_value || 0).toLocaleString() + '</strong></td>';
+        
         // Next Follow-up column
         html += '<td>';
         if (lead.follow_up_date) {
@@ -464,7 +450,7 @@ function renderLeadsTable() {
             html += '<span class="text-muted">Not scheduled</span>';
         }
         html += '</td>';
-
+        
         // Actions column
         html += '<td>';
         html += '<div class="btn-group btn-group-sm">';
@@ -483,7 +469,7 @@ function renderLeadsTable() {
         html += '<li><a class="dropdown-item text-danger" href="#" onclick="deleteLead(' + lead.id + ')"><i class="bi bi-trash me-2"></i>Delete</a></li>';
         html += '</ul></div>';
         html += '</div></td>';
-
+        
         html += '</tr>';
     }
 
@@ -494,7 +480,7 @@ async function showLeadDetail(leadId) {
     currentDetailLeadId = leadId;
     var lead = findLeadById(leadId);
     if (!lead) return;
-
+    
     var html = '';
     html += '<div class="lead-detail-header">';
     html += '<div class="row">';
@@ -518,9 +504,10 @@ async function showLeadDetail(leadId) {
     html += '</div>';
     html += '</div>';
     html += '<div class="col-md-4 text-end">';
-    html += '<h3 class="text-success mb-2">' + formatCurrency(lead.deal_value) + '</h3>';
+    html += '<h3 class="text-success mb-2">
+     + (lead.deal_value || 0).toLocaleString() + '</h3>';
     html += '<div class="mb-2">' + getStatusBadge(lead.status) + '</div>';
-
+    
     // Progress bar
     html += '<div class="stage-progress mb-2">';
     html += '<div class="stage-progress-fill" style="width: ' + (lead.progress || 0) + '%"></div>';
@@ -529,7 +516,7 @@ async function showLeadDetail(leadId) {
     html += '</div>';
     html += '</div>';
     html += '</div>';
-
+    
     // Assignment Info
     html += '<div class="row mb-4">';
     html += '<div class="col-md-6">';
@@ -544,7 +531,7 @@ async function showLeadDetail(leadId) {
         html += '<small class="text-muted">' + lead.assigned_to_email + '</small>';
         html += '</div>';
         html += '</div>';
-
+        
         // Assignment history
         if (lead.assignments && lead.assignments.length > 0) {
             html += '<small class="text-muted">Assignment History:</small>';
@@ -574,7 +561,7 @@ async function showLeadDetail(leadId) {
     html += '</div>';
     html += '</div>';
     html += '</div>';
-
+    
     // Important Dates
     html += '<div class="col-md-6">';
     html += '<div class="card">';
@@ -604,7 +591,7 @@ async function showLeadDetail(leadId) {
     html += '</div>';
     html += '</div>';
     html += '</div>';
-
+    
     // Comments
     if (lead.comments) {
         html += '<div class="card mb-4">';
@@ -614,7 +601,7 @@ async function showLeadDetail(leadId) {
         html += '</div>';
         html += '</div>';
     }
-
+    
     // Communication History
     html += '<div class="card">';
     html += '<div class="card-header d-flex justify-content-between align-items-center">';
@@ -622,7 +609,7 @@ async function showLeadDetail(leadId) {
     html += '<button class="btn btn-sm btn-success" onclick="showCommunicationModalFromDetail()">Add Communication</button>';
     html += '</div>';
     html += '<div class="card-body">';
-
+    
     if (lead.communications && lead.communications.length > 0) {
         html += '<div class="progress-timeline">';
         for (var i = 0; i < lead.communications.length; i++) {
@@ -631,8 +618,8 @@ async function showLeadDetail(leadId) {
             html += '<div class="d-flex justify-content-between align-items-start mb-1">';
             html += '<div>';
             html += '<strong>' + capitalizeFirst(comm.communication_type) + '</strong>';
-            if (comm.user_name) {
-                html += ' <small class="text-muted">by ' + comm.user_name + '</small>';
+            if (comm.user) {
+                html += ' <small class="text-muted">by ' + comm.user + '</small>';
             }
             html += '</div>';
             html += '<small class="text-muted">' + comm.date + '</small>';
@@ -647,15 +634,16 @@ async function showLeadDetail(leadId) {
         html += '<p>No communications logged yet</p>';
         html += '</div>';
     }
-
+    
     html += '</div>';
     html += '</div>';
-
+    
     document.getElementById('leadDetailContent').innerHTML = html;
     document.getElementById('leadDetailTitle').textContent = 'Lead Details - ' + lead.company;
     new bootstrap.Modal(document.getElementById('leadDetailModal')).show();
 }
 
+// Continue with more functions...
 function navigateLead(direction) {
     var currentIndex = -1;
     for (var i = 0; i < filteredLeads.length; i++) {
@@ -664,9 +652,9 @@ function navigateLead(direction) {
             break;
         }
     }
-
+    
     if (currentIndex === -1) return;
-
+    
     var newIndex = currentIndex + direction;
     if (newIndex >= 0 && newIndex < filteredLeads.length) {
         showLeadDetail(filteredLeads[newIndex].id);
@@ -709,13 +697,13 @@ function applyFilters() {
 
         // Status filter
         if (statusFilter !== 'all' && lead.status !== statusFilter) include = false;
-
+        
         // Division filter
         if (divisionFilter !== 'all' && lead.division !== divisionFilter) include = false;
-
+        
         // Priority filter  
         if (priorityFilter !== 'all' && lead.priority !== priorityFilter) include = false;
-
+        
         // Personnel filter
         if (personnelFilter !== 'all') {
             if (personnelFilter === 'unassigned' && lead.assigned_to) include = false;
@@ -756,18 +744,18 @@ function setCurrentView(view) {
 
 function updateSelectedLeads() {
     var checkboxes = document.querySelectorAll('.lead-checkbox:checked');
-    selectedLeads = Array.from(checkboxes).map(function (cb) { return parseInt(cb.value); });
+    selectedLeads = Array.from(checkboxes).map(function(cb) { return parseInt(cb.value); });
     updateSelectAllState();
 }
 
 function toggleSelectAll() {
     var selectAll = document.getElementById('selectAll').checked;
     var checkboxes = document.querySelectorAll('.lead-checkbox');
-
-    checkboxes.forEach(function (cb) {
+    
+    checkboxes.forEach(function(cb) {
         cb.checked = selectAll;
     });
-
+    
     updateSelectedLeads();
 }
 
@@ -776,7 +764,7 @@ function updateSelectAllState() {
     var checkedBoxes = document.querySelectorAll('.lead-checkbox:checked');
     var selectAll = document.getElementById('selectAll');
     var selectAllHeader = document.getElementById('selectAllHeader');
-
+    
     if (checkboxes.length === 0) {
         selectAll.indeterminate = false;
         selectAll.checked = false;
@@ -809,7 +797,7 @@ function showAddForm() {
 function editLead(id) {
     var lead = findLeadById(id);
     if (!lead) return;
-
+    
     editingLeadId = id;
     document.getElementById('modalTitle').textContent = 'Edit Lead - ' + lead.company;
     populateForm(lead);
@@ -846,9 +834,10 @@ async function saveLead() {
 
     try {
         showLoading(true);
-
+        
         if (editingLeadId) {
             var response = await apiCall(`/api/leads/${editingLeadId}/update/`, 'PUT', formData);
+            // Update the lead in our local array
             var index = findLeadIndexById(editingLeadId);
             if (index !== -1) {
                 leads[index] = response;
@@ -861,9 +850,10 @@ async function saveLead() {
         }
 
         bootstrap.Modal.getInstance(document.getElementById('leadModal')).hide();
-
+        
+        // Reload data to get fresh analytics
         await loadInitialData();
-
+        
         showLoading(false);
     } catch (error) {
         console.error('Error saving lead:', error);
@@ -875,15 +865,15 @@ async function saveLead() {
 async function deleteLead(id) {
     var lead = findLeadById(id);
     if (!lead) return;
-
+    
     if (confirm('Are you sure you want to delete the lead for ' + lead.company + '?')) {
         try {
             showLoading(true);
             await apiCall(`/api/leads/${id}/delete/`, 'DELETE');
-
-            leads = leads.filter(function (l) { return l.id !== id; });
-            selectedLeads = selectedLeads.filter(function (leadId) { return leadId !== id; });
-
+            
+            leads = leads.filter(function(l) { return l.id !== id; });
+            selectedLeads = selectedLeads.filter(function(leadId) { return leadId !== id; });
+            
             await loadInitialData();
             showAlert('Lead deleted successfully');
             showLoading(false);
@@ -913,7 +903,7 @@ async function logCommunication() {
     var type = document.getElementById('communicationType').value;
     var newStatus = document.getElementById('newStatus').value;
     var nextFollowup = document.getElementById('nextFollowupDate').value;
-
+    
     if (!note) {
         alert('Please add communication notes');
         document.getElementById('communicationNote').focus();
@@ -922,7 +912,7 @@ async function logCommunication() {
 
     try {
         showLoading(true);
-
+        
         var data = {
             lead_id: currentCommunicationLeadId,
             communication_type: type,
@@ -930,22 +920,25 @@ async function logCommunication() {
             new_status: newStatus || null,
             next_followup: nextFollowup || null
         };
-
+        
         var response = await apiCall('/api/communication/', 'POST', data);
-
+        
+        // Update the lead in our local array
         var leadIndex = findLeadIndexById(currentCommunicationLeadId);
         if (leadIndex !== -1) {
             leads[leadIndex] = response;
         }
-
+        
         bootstrap.Modal.getInstance(document.getElementById('communicationModal')).hide();
-
+        
+        // Reload data to get fresh analytics
         await loadInitialData();
-
+        
+        // Refresh detail view if open
         if (currentDetailLeadId === currentCommunicationLeadId) {
             showLeadDetail(currentDetailLeadId);
         }
-
+        
         showAlert('Communication logged successfully');
         showLoading(false);
     } catch (error) {
@@ -971,41 +964,44 @@ function showReassignModal(leadId) {
 async function processReassignment() {
     var newAssignee = document.getElementById('reassignTo').value;
     var reason = document.getElementById('reassignReason').value.trim();
-
+    
     if (!newAssignee) {
         alert('Please select who to reassign this lead to');
         return;
     }
-
+    
     if (!reason) {
         alert('Please provide a reason for reassignment');
         return;
     }
-
+    
     try {
         showLoading(true);
-
+        
         var data = {
             lead_id: currentCommunicationLeadId,
             new_assignee_id: parseInt(newAssignee),
             reason: reason
         };
-
+        
         var response = await apiCall('/api/reassign/', 'POST', data);
-
+        
+        // Update the lead in our local array
         var leadIndex = findLeadIndexById(currentCommunicationLeadId);
         if (leadIndex !== -1) {
             leads[leadIndex] = response;
         }
-
+        
         bootstrap.Modal.getInstance(document.getElementById('reassignModal')).hide();
-
+        
+        // Reload data to get fresh analytics
         await loadInitialData();
-
+        
+        // Refresh detail view if open
         if (currentDetailLeadId === currentCommunicationLeadId) {
             showLeadDetail(currentDetailLeadId);
         }
-
+        
         showAlert('Lead reassigned successfully');
         showLoading(false);
     } catch (error) {
@@ -1018,36 +1014,41 @@ async function processReassignment() {
 async function quickAssign(leadId) {
     currentCommunicationLeadId = leadId;
     var lead = findLeadById(leadId);
-
-    var suitablePersonnel = personnel.filter(function (p) {
-        return p.division === lead.division;
+    
+    // Auto-assign based on division expertise
+    var suitablePersonnel = personnel.filter(function(p) { 
+        return p.division === lead.division; 
     });
-
+    
     if (suitablePersonnel.length > 0) {
-        var assignee = suitablePersonnel.reduce(function (prev, curr) {
+        // Find person with lowest workload in the division
+        var assignee = suitablePersonnel.reduce(function(prev, curr) {
             return prev.workload < curr.workload ? prev : curr;
         });
-
+        
         try {
             showLoading(true);
-
+            
             var data = {
                 lead_id: leadId,
                 new_assignee_id: assignee.id,
                 reason: 'Quick assignment based on division expertise'
             };
-
+            
             var response = await apiCall('/api/reassign/', 'POST', data);
-
+            
+            // Update the lead in our local array
             var leadIndex = findLeadIndexById(leadId);
             if (leadIndex !== -1) {
                 leads[leadIndex] = response;
             }
-
+            
+            // Update workload
             assignee.workload++;
-
+            
+            // Reload data to get fresh analytics
             await loadInitialData();
-
+            
             showAlert('Lead assigned successfully');
             showLoading(false);
         } catch (error) {
@@ -1068,27 +1069,28 @@ async function processBulkAssignment() {
     var strategy = document.getElementById('assignmentStrategy').value;
     var scope = document.querySelector('input[name="bulkScope"]:checked').value;
     var manualAssignee = document.getElementById('bulkAssignPerson').value;
-
+    
     if (strategy === 'manual' && !manualAssignee) {
         alert('Please select a person to assign leads to');
         return;
     }
-
+    
     try {
         showLoading(true);
-
+        
         var data = {
             strategy: strategy,
             scope: scope,
             manual_assignee_id: manualAssignee ? parseInt(manualAssignee) : null
         };
-
+        
         var response = await apiCall('/api/bulk-assign/', 'POST', data);
-
+        
         bootstrap.Modal.getInstance(document.getElementById('bulkAssignModal')).hide();
-
+        
+        // Reload all data
         await loadInitialData();
-
+        
         showAlert(response.message);
         showLoading(false);
     } catch (error) {
@@ -1104,14 +1106,14 @@ async function bulkReassign() {
         alert('Please select leads to reassign');
         return;
     }
-
+    
     var newAssignee = prompt('Enter personnel ID to reassign ' + selectedLeads.length + ' leads to:');
     if (newAssignee && findPersonById(parseInt(newAssignee))) {
         var reason = prompt('Reason for bulk reassignment:');
         if (reason) {
             try {
                 showLoading(true);
-
+                
                 for (var i = 0; i < selectedLeads.length; i++) {
                     var data = {
                         lead_id: selectedLeads[i],
@@ -1120,10 +1122,10 @@ async function bulkReassign() {
                     };
                     await apiCall('/api/reassign/', 'POST', data);
                 }
-
+                
                 selectedLeads = [];
                 await loadInitialData();
-
+                
                 showAlert('Successfully reassigned leads!');
                 showLoading(false);
             } catch (error) {
@@ -1140,14 +1142,14 @@ async function bulkUpdateStatus() {
         alert('Please select leads to update');
         return;
     }
-
+    
     var newStatus = prompt('Enter new status (new/contacted/qualified/proposal/negotiation/hot/won/lost/inactive):');
     var validStatuses = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'hot', 'won', 'lost', 'inactive'];
-
+    
     if (newStatus && validStatuses.includes(newStatus)) {
         try {
             showLoading(true);
-
+            
             for (var i = 0; i < selectedLeads.length; i++) {
                 var lead = findLeadById(selectedLeads[i]);
                 if (lead) {
@@ -1158,10 +1160,10 @@ async function bulkUpdateStatus() {
                     await apiCall(`/api/leads/${selectedLeads[i]}/update/`, 'PUT', data);
                 }
             }
-
+            
             selectedLeads = [];
             await loadInitialData();
-
+            
             showAlert('Successfully updated status for selected leads!');
             showLoading(false);
         } catch (error) {
@@ -1177,18 +1179,18 @@ async function bulkDelete() {
         alert('Please select leads to delete');
         return;
     }
-
+    
     if (confirm('Are you sure you want to delete ' + selectedLeads.length + ' selected leads? This action cannot be undone.')) {
         try {
             showLoading(true);
-
+            
             for (var i = 0; i < selectedLeads.length; i++) {
                 await apiCall(`/api/leads/${selectedLeads[i]}/delete/`, 'DELETE');
             }
-
+            
             selectedLeads = [];
             await loadInitialData();
-
+            
             showAlert('Successfully deleted selected leads!');
             showLoading(false);
         } catch (error) {
