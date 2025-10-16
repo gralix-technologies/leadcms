@@ -31,13 +31,7 @@ jobs:
       
       - name: Install dependencies
         run: pip install -r requirements.txt
-
-      - name: Run makemigrations
-        run: python manage.py makemigrations --noinput
-      
-      - name: Run migrations
-        run: python manage.py migrate --noinput
-      
+    
       - name: Collect static files
         run: python manage.py collectstatic --noinput --clear
         
@@ -79,4 +73,5 @@ jobs:
           slot-name: 'Production'
 
           
+
 
