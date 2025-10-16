@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import Lead, Personnel, Communication, Assignment
+from .models import Lead, Personnel, Communication, Assignment, Product
+
 
 class PersonnelSerializer(serializers.ModelSerializer):
     name = serializers.ReadOnlyField()
@@ -13,6 +14,7 @@ class PersonnelSerializer(serializers.ModelSerializer):
     
     def get_avatar(self, obj):
         return obj.get_avatar()
+
 
 class PersonnelLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -37,12 +39,22 @@ class PersonnelLoginSerializer(serializers.Serializer):
 
         return data
 
+
+class ProductSerializer(serializers.ModelSerializer):
+    division_display = serializers.CharField(source='get_division_display', read_only=True)
+    
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'division', 'division_display', 'description', 'is_active']
+
+
 class CommunicationSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.name', read_only=True)
     
     class Meta:
         model = Communication
         fields = ['id', 'communication_type', 'note', 'user', 'user_name', 'date']
+
 
 class AssignmentSerializer(serializers.ModelSerializer):
     from_personnel_name = serializers.CharField(source='from_personnel.name', read_only=True)
@@ -54,12 +66,14 @@ class AssignmentSerializer(serializers.ModelSerializer):
         fields = ['id', 'from_personnel', 'from_personnel_name', 'to_personnel', 
                  'to_personnel_name', 'assigned_by', 'assigned_by_name', 'reason', 'date']
 
+
 class LeadSerializer(serializers.ModelSerializer):
     assigned_to_name = serializers.CharField(source='assigned_to.name', read_only=True)
     assigned_to_avatar = serializers.SerializerMethodField()
     assigned_to_email = serializers.CharField(source='assigned_to.email', read_only=True)
     assigned_to_division = serializers.CharField(source='assigned_to.division', read_only=True)
     created_by_name = serializers.CharField(source='created_by.name', read_only=True)
+    product_name = serializers.CharField(source='product.name', read_only=True)
     communications = CommunicationSerializer(many=True, read_only=True)
     assignments = AssignmentSerializer(many=True, read_only=True)
     can_edit = serializers.SerializerMethodField()
@@ -76,6 +90,7 @@ class LeadSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.can_be_edited_by(request.user)
         return False
+
 
 class LeadCreateSerializer(serializers.ModelSerializer):
     class Meta:
