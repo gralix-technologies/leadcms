@@ -31,6 +31,21 @@ jobs:
       
       - name: Install dependencies
         run: pip install -r requirements.txt
+
+      - name: Run makemigrations
+        run: |
+          source venv/bin/activate
+          python manage.py makemigrations --noinput
+      
+      - name: Run migrations
+        run: |
+          source venv/bin/activate
+          python manage.py migrate --noinput
+      
+      - name: Collect static files
+        run: |
+          source venv/bin/activate
+          python manage.py collectstatic --noinput --clear
         
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 
@@ -68,4 +83,5 @@ jobs:
         with:
           app-name: 'gralixleadcms'
           slot-name: 'Production'
+
           
