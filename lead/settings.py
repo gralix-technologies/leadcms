@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
-from azure.storage.blob import BlobServiceClient
-connection_string = os.getenv("AzureStorageConnectionString")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -93,29 +91,6 @@ WSGI_APPLICATION = 'lead.wsgi.application'
 
 PERSISTENT_SQL_DIR = "/home/site/sqlfiles"  # Azure App Service persistent storage
 SQL_FILE_PATH = os.path.join(BASE_DIR, "db.sqlite3")
-
-# Try to download db.sqlite3 from Azure Blob Storage only if not already present
-try:
-    if not os.path.exists(SQL_FILE_PATH):
-        os.makedirs(PERSISTENT_SQL_DIR, exist_ok=True)
-
-        connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")  # ✅ Use consistent env var name
-        container_name = os.getenv("AZURE_SQL_CONTAINER", "sqlfiles")
-        blob_name = os.getenv("AZURE_SQL_BLOB", "db.sqlite3")
-
-        if connection_string:
-            blob_service_client = BlobServiceClient.from_connection_string(connection_string)
-            container_client = blob_service_client.get_container_client(container_name)
-            blob_client = container_client.get_blob_client(blob_name)
-
-            print(f"Downloading {blob_name} from Azure Blob Storage...")
-            with open(SQL_FILE_PATH, "wb") as f:
-                f.write(blob_client.download_blob().readall())
-        else:
-            print("⚠️ Azure Storage connection string not found. Using existing or default DB.")
-except Exception as e:
-    print(f"⚠️ Failed to fetch DB from Azure Blob Storage: {e}")
-    # Fallback: Use local db.sqlite3 inside BASE_DIR
 
 # ==========================
 # USE THE DOWNLOADED DB FILE
