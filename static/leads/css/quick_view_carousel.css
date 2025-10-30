@@ -1,0 +1,275 @@
+/* ============================================
+   QUICK VIEW CAROUSEL - GLASSMORPHIC STYLE
+   ============================================ */
+
+.quick-view-carousel {
+    padding: 1.5rem 0;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+/* Carousel Slide */
+.quick-view-slide {
+    padding: 0 2rem;
+}
+
+/* Quick View Card */
+.quick-view-card {
+    transition: all 0.3s ease;
+    border: none;
+    border-radius: 10px;
+    background-color: var(--dark-surface);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.quick-view-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.quick-view-card .card-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+}
+
+.quick-view-card i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.quick-view-card h3 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.quick-view-card p {
+    font-size: 0.9rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+
+/* Active Card Styling */
+.quick-view-card.active {
+    border: 2px solid var(--brand-blue);
+    box-shadow: var(--shadow-lg), var(--glow-blue);
+}
+
+/* ============================================
+   CAROUSEL CONTROLS - GLASSMORPHIC BRAND STYLE
+   ============================================ */
+
+/* Remove all default backgrounds */
+.carousel-control-prev,
+.carousel-control-next {
+    width: 60px;
+    height: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    background: none !important;
+}
+
+/* Position controls */
+.carousel-control-prev {
+    left: 10px;
+}
+
+.carousel-control-next {
+    right: 10px;
+}
+
+/* Show controls on hover */
+.quick-view-carousel:hover .carousel-control-prev,
+.quick-view-carousel:hover .carousel-control-next {
+    opacity: 1;
+}
+
+/* ============================================
+   GLASSMORPHIC ICONS - DARK MODE
+   ============================================ */
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(34, 37, 81, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    background-image: none !important;
+}
+
+/* Hover effect - Brand Orange Glow */
+.carousel-control-prev:hover .carousel-control-prev-icon,
+.carousel-control-next:hover .carousel-control-next-icon {
+    background: rgba(232, 92, 41, 0.6);
+    border-color: rgba(232, 92, 41, 0.8);
+    box-shadow: 0 0 20px rgba(232, 92, 41, 0.5);
+    transform: scale(1.1);
+}
+
+/* ============================================
+   ARROW ICONS - USING SIMPLE UNICODE
+   ============================================ */
+
+.carousel-control-prev-icon::before,
+.carousel-control-next-icon::before {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 900;
+    line-height: 1;
+}
+
+.carousel-control-prev:hover .carousel-control-prev-icon::before,
+.carousel-control-next:hover .carousel-control-next-icon::before {
+    color: #ffffff;
+}
+
+/* Left Arrow */
+.carousel-control-prev-icon::before {
+    content: '‹';
+    /* Single left-pointing angle quotation mark */
+}
+
+/* Right Arrow */
+.carousel-control-next-icon::before {
+    content: '›';
+    /* Single right-pointing angle quotation mark */
+}
+
+/* ============================================
+   GLASSMORPHIC ICONS - LIGHT MODE
+   ============================================ */
+
+[data-theme="light"] .carousel-control-prev-icon,
+[data-theme="light"] .carousel-control-next-icon {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(34, 37, 81, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .carousel-control-prev-icon::before,
+[data-theme="light"] .carousel-control-next-icon::before {
+    color: #222551;
+}
+
+[data-theme="light"] .carousel-control-prev:hover .carousel-control-prev-icon,
+[data-theme="light"] .carousel-control-next:hover .carousel-control-next-icon {
+    background: rgba(232, 92, 41, 0.8);
+    border-color: rgba(232, 92, 41, 1);
+    box-shadow: 0 0 20px rgba(232, 92, 41, 0.4);
+}
+
+[data-theme="light"] .carousel-control-prev:hover .carousel-control-prev-icon::before,
+[data-theme="light"] .carousel-control-next:hover .carousel-control-next-icon::before {
+    color: #ffffff;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 992px) {
+    .quick-view-slide {
+        padding: 0 1rem;
+    }
+
+    .quick-view-card .card-body {
+        padding: 1rem;
+        min-height: 100px;
+    }
+
+    .quick-view-card i {
+        font-size: 2rem;
+    }
+
+    .quick-view-card h3 {
+        font-size: 1.5rem;
+    }
+
+    .quick-view-card p {
+        font-size: 0.85rem;
+    }
+
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 50px;
+        height: 50px;
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .carousel-control-prev-icon::before,
+    .carousel-control-next-icon::before {
+        font-size: 1.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .quick-view-slide {
+        padding: 0 0.5rem;
+    }
+
+    .quick-view-card .card-body {
+        padding: 0.75rem;
+        min-height: 90px;
+    }
+
+    .quick-view-card i {
+        font-size: 1.75rem;
+    }
+
+    .quick-view-card h3 {
+        font-size: 1.25rem;
+    }
+
+    .quick-view-card p {
+        font-size: 0.8rem;
+    }
+
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 45px;
+        height: 45px;
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        width: 45px;
+        height: 45px;
+    }
+
+    .carousel-control-prev-icon::before,
+    .carousel-control-next-icon::before {
+        font-size: 1.5rem;
+    }
+
+    /* Always show controls on mobile */
+    .carousel-control-prev,
+    .carousel-control-next {
+        opacity: 0.7;
+    }
+}

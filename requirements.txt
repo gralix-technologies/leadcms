@@ -2,4 +2,3 @@ Django
 djangorestframework
 gunicorn
 whitenoise
-azure-storage-blob

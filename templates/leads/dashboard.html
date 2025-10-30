@@ -30,6 +30,14 @@
                         <div class="personnel-avatar me-3" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#userProfileModal">
                             {{ user.get_avatar }}
                         </div>
+                        
+                        <!-- 🆕 NEW: Theme Toggle Button -->
+                        <div class="theme-toggle me-3" onclick="toggleTheme()" title="Toggle Light/Dark Mode">
+                            <div class="theme-toggle-slider">
+                                <i class="bi bi-moon-fill" id="themeIcon"></i>
+                            </div>
+                        </div>
+                        
                         <div class="dropdown">
                             <button class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">
                                 <i class="bi bi-gear"></i>
@@ -68,14 +76,15 @@
 
     <div class="container-fluid py-4">
         <!-- Quick View Cards -->
-        <div class="row mb-4" id="quickViewCards">
-            <div class="col-12 text-center py-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2 text-secondary">Loading dashboard...</p>
-            </div>
+        <!-- Quick View Cards -->
+<div class="quick-view-container mb-4" id="quickViewCards">
+    <div class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
+        <p class="mt-2 text-secondary">Loading dashboard...</p>
+    </div>
+</div>
 
         <!-- Revenue Analytics -->
         <div class="row mb-4">
@@ -225,33 +234,70 @@
             </div>
         </div>
 
-        <!-- Leads Table -->
+        <!-- Leads Table - UPDATED WITH PROBABILITY COLUMN -->
         <div class="card shadow-sm">
             <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-table me-2"></i>Company Leads</h5>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                <div class="table-responsive-horizontal">
+                    <table class="table table-hover mb-0 leads-table">
                         <thead class="table-dark">
                             <tr>
                                 {% if user_permissions.can_manage_leads %}
-                                <th width="40"><input type="checkbox" id="selectAllHeader" onchange="toggleSelectAll()"></th>
+                                <th class="col-checkbox"><input type="checkbox" id="selectAllHeader" onchange="toggleSelectAll()"></th>
                                 {% endif %}
-                                <th><i class="bi bi-building me-1"></i>Company</th>
-                                <th><i class="bi bi-person me-1"></i>Contact</th>
-                                <th><i class="bi bi-person-badge me-1"></i>Assigned To</th>
-                                <th><i class="bi bi-diagram-3 me-1"></i>Division</th>
-                                <th><i class="bi bi-flag me-1"></i>Status & Progress</th>
-                                <th><i class="bi bi-exclamation-triangle me-1"></i>Priority</th>
-                                <th><i class="bi bi-cash me-1"></i>Deal Value (ZMW)</th>
-                                <th><i class="bi bi-calendar me-1"></i>Next Follow-up</th>
-                                <th><i class="bi bi-gear me-1"></i>Actions</th>
+                                <th class="col-company">
+                                    <i class="bi bi-building"></i>
+                                    <span>Company</span>
+                                </th>
+                                <th class="col-contact">
+                                    <i class="bi bi-person"></i>
+                                    <span>Contact</span>
+                                </th>
+                                <th class="col-assigned">
+                                    <i class="bi bi-person-badge"></i>
+                                    <span>Assigned To</span>
+                                </th>
+                                <th class="col-division">
+                                    <i class="bi bi-diagram-3"></i>
+                                    <span>Division</span>
+                                </th>
+                                <th class="col-product">
+                                    <i class="bi bi-box-seam"></i>
+                                    <span>Product</span>
+                                </th>
+                                <th class="col-status">
+                                    <i class="bi bi-flag"></i>
+                                    <span>Status</span>
+                                </th>
+                                <th class="col-priority">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <span>Priority</span>
+                                </th>
+                                <th class="col-deal">
+                                    <i class="bi bi-cash"></i>
+                                    <span>Deal Value (ZMW)</span>
+                                </th>
+                                <!-- 🆕 NEW COLUMN: Probability of Completion -->
+                                <th class="col-probability">
+                                    <i class="bi bi-percent"></i>
+                                    <span>Probability</span>
+                                </th>
+                                <th class="col-followup">
+                                    <i class="bi bi-calendar"></i>
+                                    <span>Next Follow-up</span>
+                                </th>
+                                <th class="col-actions">
+                                    <i class="bi bi-gear"></i>
+                                    <span>Actions</span>
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="leadsTableBody">
                             <tr>
-                                <td colspan="10" class="text-center py-4">
+                                <!-- 🆕 UPDATED: Changed colspan from 11 to 12 -->
+                                <td colspan="12" class="text-center py-4">
                                     <div class="spinner-border text-primary" role="status">
                                         <span class="visually-hidden">Loading...</span>
                                     </div>
@@ -275,7 +321,7 @@
         </div>
     </div>
 
-    <!-- Add/Edit Lead Modal -->
+    <!-- Add/Edit Lead Modal - UPDATED WITH PROBABILITY FIELD -->
     <div class="modal fade" id="leadModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -303,11 +349,35 @@
                                     <label class="form-label">Email/Phone</label>
                                     <input type="text" class="form-control" id="email" placeholder="Email or phone number">
                                 </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Deal Value (ZMW)</label>
+                                    <input type="number" class="form-control" id="dealValue" placeholder="Potential deal value" min="0">
+                                </div>
+                                <!-- 🆕 NEW FIELD: Probability of Completion -->
+                                <div class="mb-3">
+                                    <label class="form-label">Probability of Completion *</label>
+                                    <select class="form-control" id="probabilityOfCompletion" required>
+                                        <option value="0">0% - Just Started</option>
+                                        <option value="10">10% - Initial Contact</option>
+                                        <option value="20">20% - Interest Shown</option>
+                                        <option value="30">30% - Qualified Lead</option>
+                                        <option value="40">40% - Proposal Requested</option>
+                                        <option value="50">50% - Proposal Sent</option>
+                                        <option value="60">60% - In Negotiation</option>
+                                        <option value="70">70% - Terms Agreed</option>
+                                        <option value="80">80% - Pending Approval</option>
+                                        <option value="90">90% - Almost Closed</option>
+                                        <option value="100">100% - Deal Closed</option>
+                                    </select>
+                                    <small class="form-text text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>This is set once at lead creation and doesn't change
+                                    </small>
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Division</label>
-                                    <select class="form-control" id="division">
+                                    <label class="form-label">Division *</label>
+                                    <select class="form-control" id="division" required>
                                         {% if user_permissions.can_view_all_leads %}
                                             <option value="tech">Gralix Tech</option>
                                             <option value="actuarial">Gralix Actuarial</option>
@@ -316,7 +386,13 @@
                                             <option value="{{ user.division }}">{{ user.get_division_display }}</option>
                                         {% endif %}
                                     </select>
-
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Product</label>
+                                    <select class="form-control" id="product">
+                                        <option value="">Select Product (Optional)</option>
+                                    </select>
+                                    <small class="form-text text-muted">Products can be managed by admin</small>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Assign To *</label>
@@ -331,10 +407,6 @@
                                         <option value="medium" selected>Medium Priority</option>
                                         <option value="low">Low Priority</option>
                                     </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Deal Value (ZMW)</label>
-                                    <input type="number" class="form-control" id="dealValue" placeholder="Potential deal value" min="0">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Next Follow-up Date</label>
@@ -523,5 +595,5 @@
         </div>
     </div>
 
-    <!--<script src="{% static 'leads/js/dashboard.js' %}"></script>-->
+    <script src="{% static 'leads/js/dashboard.js' %}"></script>
 {% endblock %}
