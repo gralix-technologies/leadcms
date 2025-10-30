@@ -32,8 +32,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
     
-      - name: Collect static files
-        run: python manage.py collectstatic --noinput --clear
+      #- name: Collect static files
+      #  run: python manage.py collectstatic --noinput --clear
         
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 
@@ -73,5 +73,6 @@ jobs:
           slot-name: 'Production'
 
           
+
 
 
