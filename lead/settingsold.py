@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
-from azure.storage.blob import BlobServiceClient
-connection_string = os.getenv("AzureStorageConnectionString")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,13 +26,9 @@ SECRET_KEY = 'django-insecure-f0qopkb0u(gda(9=04o9z(^^sp3x^+os+y#w3)nv%c5l+uui9t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#ALLOWED_HOSTS = ['lead.gralix.co','https://gralixleadcms-brcfavdqgkbqbtht.canadacentral-01.azurewebsites.net',]
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['gralixleadcmd-d0a5d3hucjdygxah.canadacentral-01.azurewebsites.net', '127.0.0.1', 'localhost']
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://lead.gralix.co',
-    # ... other trusted origins
-]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -49,8 +43,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -83,47 +77,10 @@ WSGI_APPLICATION = 'lead.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-
-
-
-# Directory where the database will persist (not overwritten by Azure deployments)
-#
-#PERSISTENT_SQL_DIR = "/home/site/sqlfiles"  # Azure App Service persistent storage
-#SQL_FILE_PATH = os.path.join(PERSISTENT_SQL_DIR, "db.sqlite3")
-
-PERSISTENT_SQL_DIR = "/home/site/sqlfiles"  # Azure App Service persistent storage
-SQL_FILE_PATH = os.path.join(BASE_DIR, "db.sqlite3")
-
-# Try to download db.sqlite3 from Azure Blob Storage only if not already present
-try:
-    if not os.path.exists(SQL_FILE_PATH):
-        os.makedirs(PERSISTENT_SQL_DIR, exist_ok=True)
-
-        connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")  # ✅ Use consistent env var name
-        container_name = os.getenv("AZURE_SQL_CONTAINER", "sqlfiles")
-        blob_name = os.getenv("AZURE_SQL_BLOB", "db.sqlite3")
-
-        if connection_string:
-            blob_service_client = BlobServiceClient.from_connection_string(connection_string)
-            container_client = blob_service_client.get_container_client(container_name)
-            blob_client = container_client.get_blob_client(blob_name)
-
-            print(f"Downloading {blob_name} from Azure Blob Storage...")
-            with open(SQL_FILE_PATH, "wb") as f:
-                f.write(blob_client.download_blob().readall())
-        else:
-            print("⚠️ Azure Storage connection string not found. Using existing or default DB.")
-except Exception as e:
-    print(f"⚠️ Failed to fetch DB from Azure Blob Storage: {e}")
-    # Fallback: Use local db.sqlite3 inside BASE_DIR
-
-# ==========================
-# USE THE DOWNLOADED DB FILE
-# ==========================
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': SQL_FILE_PATH,  # ✅ Always use the file from /home/site/sqlfiles
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -163,12 +120,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Additional places where static files are stored
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
