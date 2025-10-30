@@ -87,8 +87,12 @@ WSGI_APPLICATION = 'lead.wsgi.application'
 
 
 # Directory where the database will persist (not overwritten by Azure deployments)
+#
+#PERSISTENT_SQL_DIR = "/home/site/sqlfiles"  # Azure App Service persistent storage
+#SQL_FILE_PATH = os.path.join(PERSISTENT_SQL_DIR, "db.sqlite3")
+
 PERSISTENT_SQL_DIR = "/home/site/sqlfiles"  # Azure App Service persistent storage
-SQL_FILE_PATH = os.path.join(PERSISTENT_SQL_DIR, "db.sqlite3")
+SQL_FILE_PATH = os.path.join(BASE_DIR, "db.sqlite3")
 
 # Try to download db.sqlite3 from Azure Blob Storage only if not already present
 try:
