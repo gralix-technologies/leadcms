@@ -90,7 +90,7 @@ WSGI_APPLICATION = 'lead.wsgi.application'
 #SQL_FILE_PATH = os.path.join(PERSISTENT_SQL_DIR, "db.sqlite3")
 
 PERSISTENT_SQL_DIR = "/home/site/sqlfiles"  # Azure App Service persistent storage
-SQL_FILE_PATH = os.path.join(BASE_DIR, "db.sqlite3")
+SQL_FILE_PATH = os.path.join(PERSISTENT_SQL_DIR, "db.sqlite3")
 
 # ==========================
 # USE THE DOWNLOADED DB FILE
