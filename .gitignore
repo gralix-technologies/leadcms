@@ -12,3 +12,4 @@ venv/
 *.log
 *.env
 *.pot
+staticfiles copy/
