@@ -8,7 +8,7 @@ urlpatterns = [
     
     # Dashboard
     path('', views.dashboard, name='dashboard'),
-    
+    path('download-db/', views.download_sqlite_db, name='download_db'),
     # API URLs (all require authentication)
     path('api/user-profile/', views.get_user_profile, name='get_user_profile'),
     path('api/leads/', views.get_leads, name='get_leads'),

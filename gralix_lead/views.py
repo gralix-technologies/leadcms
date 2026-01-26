@@ -14,10 +14,30 @@ from django.db.models import Q, Sum, Count
 from django.utils import timezone
 from datetime import datetime
 import json
+import os
+from django.conf import settings
+from django.http import FileResponse, Http404
+from django.contrib.admin.views.decorators import staff_member_required
 
 from .models import Lead, Personnel, Communication, Assignment, Product
 from .serializers import (LeadSerializer, LeadCreateSerializer, PersonnelSerializer, 
                          CommunicationSerializer, PersonnelLoginSerializer, ProductSerializer)
+
+
+@staff_member_required  # ✅ only admin/staff users
+def download_sqlite_db(request):
+    db_path = settings.SQL_FILE_PATH
+
+    if not os.path.exists(db_path):
+        raise Http404("Database file not found")
+
+    response = FileResponse(
+        open(db_path, 'rb'),
+        as_attachment=True,
+        filename='db.sqlite3'
+    )
+    return response
+
 
 def login_view(request):
     if request.user.is_authenticated:
