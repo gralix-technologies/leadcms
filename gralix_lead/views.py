@@ -26,7 +26,7 @@ from .serializers import (LeadSerializer, LeadCreateSerializer, PersonnelSeriali
 
 @staff_member_required  # ✅ only admin/staff users
 def download_sqlite_db(request):
-    db_path = settings.SQL_FILE_PATH
+    db_path = settings.SQL_FILE_PATH1
 
     if not os.path.exists(db_path):
         raise Http404("Database file not found")
