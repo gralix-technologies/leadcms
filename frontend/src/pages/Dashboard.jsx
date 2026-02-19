@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
-    ArrowUpRight, DollarSign, Users, Activity, BarChart3,
+    DollarSign, Users, Activity, BarChart3,
     Flame, CheckCircle, Phone, FileText, MessageSquare, Award, XCircle, UserMinus, Star
 } from 'lucide-react';
 import StatusCard from '../components/dashboard/StatusCard';
@@ -30,9 +30,9 @@ const Dashboard = () => {
     // Quick View Modal State
     const [modalOpen, setModalOpen] = useState(false);
     const [modalTitle, setModalTitle] = useState('');
-    const [filteredLeads, setFilteredLeads] = useState([]);
+    const [modalFilter, setModalFilter] = useState(null); // stores the active filter function
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [analyticsRes, leadsRes] = await Promise.all([
                 leadService.getAnalytics(),
@@ -45,44 +45,52 @@ const Dashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [fetchData]);
+
+    // Re-fetch when the user switches back to this tab
+    useEffect(() => {
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                fetchData();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => document.removeEventListener('visibilitychange', handleVisibility);
+    }, [fetchData]);
 
     const handleCardClick = (type, title) => {
-        let results = [];
-        switch (type) {
-            case 'hot': results = leads.filter(l => l.status === 'hot'); break;
-            case 'qualified': results = leads.filter(l => l.status === 'qualified'); break;
-            case 'contacted': results = leads.filter(l => l.status === 'contacted'); break;
-            case 'proposal': results = leads.filter(l => l.status === 'proposal'); break;
-            case 'negotiation': results = leads.filter(l => l.status === 'negotiation'); break;
-            case 'won': results = leads.filter(l => l.status === 'won'); break;
-            case 'lost': results = leads.filter(l => l.status === 'lost'); break;
-            case 'unassigned': results = leads.filter(l => !l.assigned_to); break;
-            case 'priority': results = leads.filter(l => l.priority === 'high'); break;
-            default: results = leads;
-        }
-        setFilteredLeads(results);
-        setModalTitle(title);
+        const filters = {
+            hot: l => l.status === 'hot',
+            qualified: l => l.status === 'qualified',
+            contacted: l => l.status === 'contacted',
+            proposal: l => l.status === 'proposal',
+            negotiation: l => l.status === 'negotiation',
+            won: l => l.status === 'won',
+            lost: l => l.status === 'lost',
+            unassigned: l => !l.assigned_to,
+            priority: l => l.priority === 'high',
+        };
+        setModalFilter(() => filters[type] || (() => true));
         setModalTitle(title);
         setModalOpen(true);
     };
 
     const handleFilterClick = (filterType, value, title) => {
-        let results = [];
         if (filterType === 'division') {
-            results = leads.filter(l => l.division === value);
+            setModalFilter(() => l => l.division === value);
         } else if (filterType === 'personnel') {
-            // Filter by assigned_to ID
-            results = leads.filter(l => l.assigned_to === value);
+            setModalFilter(() => l => l.assigned_to === value);
         }
-        setFilteredLeads(results);
         setModalTitle(title);
         setModalOpen(true);
     };
+
+    // Derive filtered leads from current leads + active filter (always up-to-date)
+    const filteredLeads = modalFilter ? leads.filter(modalFilter) : leads;
 
     // Calculate counts dynamically from loaded leads to be instant
     const getCount = (filterFn) => leads.filter(filterFn).length;
@@ -197,17 +205,30 @@ const Dashboard = () => {
                                 <div
                                     key={division}
                                     onClick={() => handleFilterClick('division', division, `${labels[division]} Leads`)}
-                                    className="bg-white border border-slate-100 p-4 rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all flex justify-between items-center group"
+                                    className="bg-white border border-slate-100 p-4 rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all group"
                                 >
-                                    <div>
-                                        <h3 className={`font-semibold text-lg ${colors[division] || 'text-slate-800'}`}>{labels[division] || division}</h3>
-                                        <p className="text-sm text-slate-500">{stats.count} leads</p>
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <h3 className={`font-semibold text-lg ${colors[division] || 'text-slate-800'}`}>{labels[division] || division}</h3>
+                                            <p className="text-sm text-slate-500">{stats.count} active leads</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-lg font-bold text-slate-900 group-hover:text-primary-600 transition-colors">
+                                                ZMW {(stats.revenue || 0).toLocaleString()}
+                                            </p>
+                                            <p className="text-xs text-slate-400">active pipeline</p>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-lg font-bold text-slate-900 group-hover:text-primary-600 transition-colors">
-                                            ZMW {(stats.revenue || 0).toLocaleString()}
-                                        </p>
-                                    </div>
+                                    {(stats.won_count > 0 || stats.lost_count > 0) && (
+                                        <div className="flex gap-4 mt-2 pt-2 border-t border-slate-50 text-xs">
+                                            {stats.won_count > 0 && (
+                                                <span className="text-emerald-600">{stats.won_count} won &middot; ZMW {(stats.won_revenue || 0).toLocaleString()}</span>
+                                            )}
+                                            {stats.lost_count > 0 && (
+                                                <span className="text-red-400">{stats.lost_count} lost &middot; ZMW {(stats.lost_revenue || 0).toLocaleString()}</span>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}

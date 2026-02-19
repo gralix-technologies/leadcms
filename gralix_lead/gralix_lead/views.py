@@ -402,92 +402,128 @@ def bulk_assign(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_analytics(request):
+    from django.db.models import F, Sum, Avg, FloatField, ExpressionWrapper
+
     # Get leads based on user permissions
     accessible_leads = request.user.get_accessible_leads()
-    
-    # 🆕 NEW: Division Filtering for "Page" View
+
+    # Division filtering for the Analytics page tabs
     division_filter = request.GET.get('division', 'all')
     if division_filter != 'all':
         accessible_leads = accessible_leads.filter(division=division_filter)
-    
-    total_leads = accessible_leads.count()
-    
-    # Exclude 'lost' from pipeline value
-    from django.db.models import F, Sum, FloatField, ExpressionWrapper
-    
-    active_leads = accessible_leads.exclude(status='lost')
-    total_pipeline = active_leads.aggregate(Sum('deal_value'))['deal_value__sum'] or 0
-    avg_deal = total_pipeline / active_leads.count() if active_leads.count() > 0 else 0
-    
-    # Lost metrics
-    lost_leads = accessible_leads.filter(status='lost')
-    lost_count = lost_leads.count()
-    lost_value = lost_leads.aggregate(Sum('deal_value'))['deal_value__sum'] or 0
 
-    # Weighted Pipeline (Realistic Value)
-    # deal_value * (probability / 100)
-    # Using F expressions for database-level calculation
+    total_leads = accessible_leads.count()
+
+    # Aggregate counts and revenue per status in one query
+    status_rows = accessible_leads.values('status').annotate(
+        count=Count('id'),
+        revenue=Sum('deal_value'),
+    )
+    status_counts = {}
+    status_revenue = {}
+    for row in status_rows:
+        status_counts[row['status']] = row['count']
+        status_revenue[row['status']] = float(row['revenue'] or 0)
+    for s, _ in Lead.STATUS_CHOICES:
+        status_counts.setdefault(s, 0)
+
+    # Pipeline excludes lost and inactive — deals we're no longer actively working
+    active_leads = accessible_leads.exclude(status__in=['lost', 'inactive'])
+    active_count = active_leads.count()
+    total_pipeline = active_leads.aggregate(total=Sum('deal_value'))['total'] or 0
+    avg_deal = float(total_pipeline) / active_count if active_count > 0 else 0
+
     weighted_pipeline = active_leads.annotate(
         weighted_val=ExpressionWrapper(
             F('deal_value') * F('probability_of_completion') / 100.0,
             output_field=FloatField()
         )
-    ).aggregate(Sum('weighted_val'))['weighted_val__sum'] or 0
+    ).aggregate(total=Sum('weighted_val'))['total'] or 0
 
-    # Conversion rate (qualified + hot leads)
-    qualified_count = accessible_leads.filter(status__in=['qualified', 'hot', 'won']).count()
-    conversion_rate = (qualified_count / total_leads * 100) if total_leads > 0 else 0
-    
-    # Status counts
-    status_counts = {}
-    for status, _ in Lead.STATUS_CHOICES:
-        status_counts[status] = accessible_leads.filter(status=status).count()
-    
-    # Division performance
+    lost_count = status_counts.get('lost', 0)
+    lost_value = status_revenue.get('lost', 0)
+
+    won_count = status_counts.get('won', 0)
+    won_value = status_revenue.get('won', 0)
+
+    # True close rate: won deals as a percentage of all leads
+    conversion_rate = (won_count / total_leads * 100) if total_leads > 0 else 0
+
+    avg_quality = accessible_leads.aggregate(avg=Avg('quality_score'))['avg'] or 0
+
+    # Division breakdown uses active pipeline only, so moving a lead to lost
+    # immediately reduces that division's count and revenue on the dashboard
+    active_filter = ~Q(status__in=['lost', 'inactive'])
+    division_rows = accessible_leads.values('division').annotate(
+        total_count=Count('id'),
+        total_revenue=Sum('deal_value'),
+        count=Count('id', filter=active_filter),
+        revenue=Sum('deal_value', filter=active_filter),
+        won_revenue=Sum('deal_value', filter=Q(status='won')),
+        won_count=Count('id', filter=Q(status='won')),
+        lost_count=Count('id', filter=Q(status='lost')),
+        lost_revenue=Sum('deal_value', filter=Q(status='lost')),
+        avg_quality=Avg('quality_score', filter=active_filter),
+    )
     division_performance = {}
-    for division, _ in Lead.DIVISION_CHOICES:
-        division_leads = accessible_leads.filter(division=division)
-        division_performance[division] = {
-            'count': division_leads.count(),
-            'revenue': division_leads.aggregate(Sum('deal_value'))['deal_value__sum'] or 0
+    for row in division_rows:
+        division_performance[row['division']] = {
+            'count': row['count'],
+            'revenue': float(row['revenue'] or 0),
+            'total_count': row['total_count'],
+            'total_revenue': float(row['total_revenue'] or 0),
+            'won_revenue': float(row['won_revenue'] or 0),
+            'won_count': row['won_count'],
+            'lost_count': row['lost_count'],
+            'lost_revenue': float(row['lost_revenue'] or 0),
+            'avg_quality': int(row['avg_quality'] or 0),
         }
-    
-    # Top performers (based on accessible leads)
+    for div, _ in Lead.DIVISION_CHOICES:
+        division_performance.setdefault(div, {
+            'count': 0, 'revenue': 0, 'total_count': 0, 'total_revenue': 0,
+            'won_revenue': 0, 'won_count': 0, 'lost_count': 0, 'lost_revenue': 0,
+            'avg_quality': 0,
+        })
+
     top_performers = []
     if request.user.can_view_all_leads():
-        personnel_performance = Personnel.objects.annotate(
-            leads_count=Count('assigned_leads', filter=Q(assigned_leads__is_deleted=False)),
-            total_value=Sum('assigned_leads__deal_value')
-        ).filter(leads_count__gt=0, is_active_personnel=True).order_by('-total_value')[:3]
+        personnel_qs = Personnel.objects.filter(is_active_personnel=True)
     else:
-        # For non-admins, show performance within their division
-        personnel_performance = Personnel.objects.filter(
-            division=request.user.division,
-            is_active_personnel=True
-        ).annotate(
-            leads_count=Count('assigned_leads', filter=Q(assigned_leads__is_deleted=False)),
-            total_value=Sum('assigned_leads__deal_value')
-        ).filter(leads_count__gt=0).order_by('-total_value')[:3]
-    
+        personnel_qs = Personnel.objects.filter(
+            division=request.user.division, is_active_personnel=True
+        )
+
+    personnel_performance = personnel_qs.annotate(
+        leads_count=Count('assigned_leads', filter=Q(assigned_leads__is_deleted=False)),
+        total_value=Sum('assigned_leads__deal_value', filter=Q(assigned_leads__is_deleted=False)),
+        won_value=Sum('assigned_leads__deal_value', filter=Q(
+            assigned_leads__is_deleted=False, assigned_leads__status='won'
+        )),
+    ).filter(leads_count__gt=0).order_by('-total_value')[:5]
+
     for person in personnel_performance:
         top_performers.append({
             'id': person.id,
             'name': person.name,
             'avatar': person.get_avatar(),
             'leads_count': person.leads_count,
-            'total_value': person.total_value or 0
+            'total_value': float(person.total_value or 0),
+            'won_value': float(person.won_value or 0),
         })
-    
+
     return Response({
         'total_pipeline': float(total_pipeline),
         'avg_deal': float(avg_deal),
-        'conversion_rate': conversion_rate,
+        'conversion_rate': round(conversion_rate, 1),
         'status_counts': status_counts,
         'division_performance': division_performance,
         'top_performers': top_performers,
         'lost_count': lost_count,
         'lost_value': float(lost_value),
+        'won_count': won_count,
+        'won_value': float(won_value),
         'weighted_pipeline': float(weighted_pipeline),
+        'avg_quality': int(avg_quality),
         'user_stats': {
             'total_accessible_leads': total_leads,
             'user_assigned_leads': accessible_leads.filter(assigned_to=request.user).count(),

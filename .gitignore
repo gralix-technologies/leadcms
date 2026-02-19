@@ -1,1 +1,36 @@
-nul
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+
+# Django
+*.sqlite3
+*.log
+local_settings.py
+staticfiles/
+media/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Environment variables
+.env
+.env.*
+
+# Frontend
+node_modules/
+dist/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

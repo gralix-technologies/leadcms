@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, AreaChart, Area
@@ -12,20 +12,32 @@ const Analytics = () => {
     const [loading, setLoading] = useState(true);
     const [activeDivision, setActiveDivision] = useState('all');
 
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await leadService.getAnalytics(activeDivision);
+            setData(response.data);
+        } catch (error) {
+            console.error("Failed to fetch analytics", error);
+        } finally {
+            setLoading(false);
+        }
+    }, [activeDivision]);
+
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const response = await leadService.getAnalytics(activeDivision);
-                setData(response.data);
-            } catch (error) {
-                console.error("Failed to fetch analytics", error);
-            } finally {
-                setLoading(false);
+        fetchData();
+    }, [fetchData]);
+
+    // Re-fetch when tab regains focus (catches lead changes made on other pages)
+    useEffect(() => {
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                fetchData();
             }
         };
-        fetchData();
-    }, [activeDivision]);
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => document.removeEventListener('visibilitychange', handleVisibility);
+    }, [fetchData]);
 
     const divisions = [
         { id: 'all', label: 'Overview' },

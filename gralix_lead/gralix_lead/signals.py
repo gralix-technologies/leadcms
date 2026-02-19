@@ -40,15 +40,14 @@ def notify_on_assignment(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Lead)
 def update_lead_score_on_change(sender, instance, created, **kwargs):
-    """
-    Recalculate score if lead details change.
-    And potentially check for manual reassignment if not done via Assignment model 
-    (though the app uses Assignment model, basic reassignment might bypass it if just .save() is used).
-    """
-    if kwargs.get('update_fields') and 'quality_score' in kwargs['update_fields'] and len(kwargs['update_fields']) == 1:
+    """Recalculate quality score whenever lead fields change (status, deal value, contacts, etc.)."""
+    # Skip if we're inside a quality_score save to avoid recursion
+    update_fields = kwargs.get('update_fields')
+    if update_fields and set(update_fields) <= {'quality_score', 'updated_at'}:
         return
 
-    # Check for direct assignment change? 
-    # Usually better to rely on Assignment model for history tracking + signals.
-    pass
+    if instance.is_deleted:
+        return
+
+    instance.calculate_quality_score()
 
